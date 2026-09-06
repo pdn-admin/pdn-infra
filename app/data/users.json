@@ -1,0 +1,58 @@
+{
+  "tomergur@gmail.com": {
+    "password": "$2b$12$g6Hh2ErQDnaDqRz/3HBaveobaIz7XSpp9n0yzBoRqnQBNksaWjM9u",
+    "pdn_code": "e5",
+    "name": "תומר",
+    "gender": "",
+    "daily_conversation_limit": 100,
+    "created_at": "2026-05-02 00:00"
+  },
+  "pdncode@gmail.com": {
+    "password": "$2b$12$RI1cSxBiUoezDkzrWlAjlOPcJ8XYy28ESYnuYL.3R6fD542AdyWOa",
+    "pdn_code": "a7",
+    "name": "פנינה",
+    "gender": "",
+    "daily_conversation_limit": 10,
+    "created_at": "2025-09-10 00:00"
+  },
+  "yaelrapoport2@gmail.com": {
+    "password": "$2b$12$AGanH5F6VdfpZ.HWsTGkkuFaByCQJGiLYew3uNTQi0fFIH4H8RHNy",
+    "pdn_code": "a3",
+    "name": "יעל",
+    "gender": "",
+    "daily_conversation_limit": 100,
+    "created_at": "2025-12-06 00:00"
+  },
+  "einavmakover@gmail.com": {
+    "password": "$2b$12$GKGnJBxnq4c1BZ5db29dFuJxrllZ8jloiR5DElngzjjdlCvrR4Ngi",
+    "pdn_code": "e9",
+    "name": "עינב",
+    "gender": "",
+    "daily_conversation_limit": 100,
+    "created_at": "2026-05-02 00:00"
+  },
+  "ronitamizur@gmail.com": {
+    "password": "$2b$12$oh64.LNQ01lGr/Yt0OgKme2zofxRsTaSYCPuxmzFlyEJ5Elu17Vq2",
+    "pdn_code": "p10",
+    "name": "רונית",
+    "gender": "",
+    "daily_conversation_limit": 100,
+    "created_at": "2026-05-02 00:00"
+  },
+  "persist_test_1786522371919@test.com": {
+    "password": "$2b$12$pLKIIOJ3UEV16jhLYA78cejO624RIDFbPbXmVqIUvR3lwxm8bp3MG",
+    "pdn_code": "a3",
+    "name": "PersistTest",
+    "gender": "",
+    "daily_conversation_limit": 5,
+    "created_at": "2026-08-12 11:12"
+  },
+  "update_test_1786522377102@test.com": {
+    "password": "$2b$12$iPy0RvgJts1sYwK20E4xMOGfOOci0ZTLSugE/oDsVSYAsOzI.iaZC",
+    "pdn_code": "a3",
+    "name": "Updated",
+    "gender": "",
+    "daily_conversation_limit": 20,
+    "created_at": "2026-08-12 11:12"
+  }
+}

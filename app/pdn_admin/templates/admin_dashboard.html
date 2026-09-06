@@ -1,0 +1,2099 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <title>PDN Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=251">
+    <style>
+        /* PDN code badge colors */
+        .pdn-badge-t { background-color: #fff7ed; color: #9a3412; }
+        .pdn-badge-p { background-color: #faf5ff; color: #6b21a8; }
+
+        /* Dashboard-specific overrides for better UX */
+        .dash-section {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease;
+        }
+        .dash-section:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .dash-section-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #fafbff 0%, #ffffff 100%);
+        }
+        .dash-section-header h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+        .dash-section-body {
+            padding: 20px 24px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #e8ecf4;
+            text-align: center;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .stat-card .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .stat-card.blue::before { background: #0b2e6b; }
+        .stat-card.blue .stat-value { color: #0b2e6b; }
+        .stat-card.green::before { background: #059669; }
+        .stat-card.green .stat-value { color: #059669; }
+        .stat-card.red::before { background: #dc2626; }
+        .stat-card.red .stat-value { color: #dc2626; }
+        .stat-card.purple::before { background: #7c3aed; }
+        .stat-card.purple .stat-value { color: #7c3aed; }
+
+        .nav-tab {
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .nav-tab:hover {
+            color: #0b2e6b;
+            background: rgba(11, 46, 107, 0.04);
+        }
+        .nav-tab.active {
+            color: #0b2e6b;
+            border-bottom-color: #0b2e6b;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Unified Table Toolbar */
+        .table-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            gap: 12px;
+        }
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .toolbar-badge {
+            font-size: 11px;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .toolbar-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+        .toolbar-search {
+            position: relative;
+            width: 200px;
+            flex-shrink: 1;
+            min-width: 120px;
+        }
+        .toolbar-search i {
+            position: absolute;
+            right: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 12px;
+            pointer-events: none;
+        }
+        .toolbar-search input {
+            width: 100%;
+            padding: 7px 34px 7px 12px;
+            font-size: 13px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+        }
+        .toolbar-search.focused input {
+            border-color: #0b2e6b;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(11, 46, 107, 0.06);
+        }
+        .toolbar-filters {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 3px;
+            flex-shrink: 0;
+        }
+        .toolbar-filters select {
+            padding: 5px 8px;
+            font-size: 11px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.15s ease;
+            font-weight: 500;
+            appearance: auto;
+        }
+        .toolbar-filters select:hover {
+            color: #1e293b;
+        }
+        .toolbar-filters select.active-filter {
+            background: white;
+            color: #0b2e6b;
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .toolbar-clear-btn {
+            padding: 5px 8px;
+            font-size: 11px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .toolbar-clear-btn:hover {
+            background: white;
+            color: #dc2626;
+        }
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .toolbar-action-btn {
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .toolbar-action-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+        .toolbar-action-btn i {
+            margin-left: 3px;
+        }
+
+        /* Mobile toolbar */
+        @media (max-width: 768px) {
+            .table-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .toolbar-right {
+                justify-content: space-between;
+            }
+            .toolbar-center {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .toolbar-search {
+                width: 100%;
+                max-width: none;
+            }
+            .toolbar-filters {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+            .toolbar-filters select {
+                flex: 1;
+                min-width: 0;
+                text-align: center;
+            }
+            .toolbar-left {
+                justify-content: flex-start;
+                gap: 6px;
+            }
+        }
+
+        /* Row hover highlight */
+        #tableBody tr {
+            transition: background-color 0.1s ease;
+        }
+        #tableBody tr:hover {
+            background-color: #f8fafc;
+        }
+        #tableBody tr.highlight-difference:hover {
+            background-color: #fef2f2;
+        }
+
+        /* Secondary columns — hidden by default */
+        .cols-hidden .col-secondary {
+            display: none;
+        }
+
+        /* PDN code emphasis */
+        .pdn-code-cell {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* Better search bar */
+        .search-bar {
+            position: relative;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .search-bar input:focus {
+            border-color: #0b2e6b;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(11, 46, 107, 0.08);
+        }
+        .search-bar .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* Header redesign */
+        .dash-header {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .header-btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+        .header-btn.primary {
+            background: linear-gradient(135deg, #0b2e6b 0%, #0a2a5f 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(11, 46, 107, 0.3);
+        }
+        .header-btn.primary:hover {
+            box-shadow: 0 4px 16px rgba(11, 46, 107, 0.4);
+            transform: translateY(-1px);
+        }
+        .header-btn.outline {
+            background: transparent;
+            border: 2px solid #0b2e6b;
+            color: #0b2e6b;
+        }
+        .header-btn.outline:hover {
+            background: rgba(11, 46, 107, 0.06);
+        }
+        .header-btn.danger {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+        }
+        .header-btn.danger:hover {
+            box-shadow: 0 4px 16px rgba(220, 38, 38, 0.35);
+            transform: translateY(-1px);
+        }
+
+        /* Accordion improvements */
+        .accordion-trigger {
+            width: 100%;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            border: none;
+            background: linear-gradient(135deg, #fafbff 0%, #ffffff 100%);
+            transition: background 0.2s ease;
+        }
+        .accordion-trigger:hover {
+            background: #f8fafc;
+        }
+        .accordion-trigger h3 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+        .accordion-chevron {
+            color: #94a3b8;
+            font-size: 12px;
+            transition: transform 0.2s ease;
+        }
+
+        /* Filter chip */
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .filter-chip:hover {
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+        .filter-chip.active {
+            border-color: #dc2626;
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        /* Responsive grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .dash-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .secondary-panels {
+                grid-template-columns: 1fr !important;
+            }
+            /* Mobile KPI grid fix */
+            #metricsSection div[style*="grid-template-columns: repeat(4"] {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            #metricsSection div[style*="grid-template-columns: repeat(2"] {
+                grid-template-columns: 1fr !important;
+            }
+            #metricsSection div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+            .metrics-range-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+        }
+
+        /* Version badge */
+        .version-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            background: rgba(11, 46, 107, 0.08);
+            color: #0b2e6b;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        .version-badge:hover {
+            background: rgba(11, 46, 107, 0.14);
+        }
+        /* Metrics Dashboard */
+        .metrics-range-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 20px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .metrics-range-btn:hover { background: rgba(11, 46, 107, 0.06); color: #1e293b; }
+        .metrics-range-btn.active {
+            background: #0b2e6b;
+            color: white;
+            box-shadow: 0 2px 8px rgba(11, 46, 107, 0.3);
+        }
+        .metrics-kpi {
+            background: white;
+            border-radius: 14px;
+            padding: 20px 16px;
+            text-align: center;
+            border: 1px solid #e8ecf4;
+            transition: all 0.2s ease;
+        }
+        .metrics-kpi:hover {
+            box-shadow: 0 4px 16px rgba(11, 46, 107, 0.08);
+            transform: translateY(-2px);
+        }
+        .metrics-kpi-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0b2e6b;
+            line-height: 1.2;
+        }
+        .metrics-kpi-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 6px;
+        }
+        .metrics-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .metrics-bar-label {
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 32px;
+            text-align: center;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .metrics-bar {
+            flex: 1;
+            height: 18px;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        .metrics-bar-value {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+            min-width: 20px;
+            text-align: left;
+        }
+        @media (max-width: 768px) {
+            #metricsSection .dash-section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+            #metricsSection div[style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6 lg:p-8">
+
+<!-- Main Dashboard -->
+<div id="dashboard" style="max-width: 1600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+
+    <!-- Header -->
+    <div class="dash-header">
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <img src="static/images/pdn_logo.png" alt="PDN Logo"
+                 onclick="showReleaseNotes()"
+                 style="height: 44px; width: auto; object-fit: contain; cursor: pointer;"
+                 title="לחץ לפרטי גרסה">
+            <div style="border-right: 2px solid #e2e8f0; padding-right: 16px;">
+                <h1 style="font-size: 22px; font-weight: 800; color: #0f172a; margin: 0;">מערכת שליטה וניהול</h1>
+                <button id="versionBadge" onclick="showReleaseNotes()" class="version-badge" style="margin-top: 4px;">
+                    <i class="fas fa-code-branch" style="font-size: 9px;"></i>
+                    <span id="versionText">טוען...</span>
+                </button>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button id="healthBtn" class="header-btn outline" aria-label="בריאות מערכת" onclick="showHealthStatus()" style="position:relative;">
+                <span id="healthDot" style="position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#22c55e;"></span>
+                <i class="fas fa-heartbeat" aria-hidden="true"></i>
+            </button>
+            <button id="refreshBtn" class="header-btn primary" aria-label="רענן נתונים" onclick="refreshAllData()">
+                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+                <span>רענן נתונים</span>
+            </button>
+            <button id="loggedInUsersBtn" class="header-btn outline" aria-label="משתמשים מחוברים" style="display:none;">
+                <i class="fas fa-users" aria-hidden="true"></i>
+                <span>משתמשים מחוברים</span>
+            </button>
+            <button id="logoutBtn" class="header-btn danger" aria-label="התנתק">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                <span>התנתק</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Legacy compat elements (referenced by metrics JS) -->
+    <div id="metricUniqueCodes" hidden aria-hidden="true"></div>
+    <div id="metricCodeMismatch" hidden aria-hidden="true"></div>
+    <div id="metricCodeMatch" hidden aria-hidden="true"></div>
+
+    <!-- Navigation Bar -->
+    <nav class="dash-section" style="padding: 0; overflow-x: auto;" aria-label="ניווט ראשי">
+        <div role="tablist" style="display: flex; border-bottom: none; gap: 0; min-width: max-content;">
+            <button class="nav-tab active" onclick="switchTab('metrics')" id="navMetrics" role="tab" aria-selected="true" aria-controls="tab-metrics">
+                <i class="fas fa-chart-pie" style="margin-left: 6px;" aria-hidden="true"></i>מדדים
+            </button>
+            <button class="nav-tab" onclick="switchTab('users')" id="navUsers" role="tab" aria-selected="false" aria-controls="tab-users">
+                <i class="fas fa-users" style="margin-left: 6px;" aria-hidden="true"></i>מאובחנים
+            </button>
+            <button class="nav-tab" onclick="switchTab('stats')" id="navStats" role="tab" aria-selected="false" aria-controls="tab-stats">
+                <i class="fas fa-comments" style="margin-left: 6px;" aria-hidden="true"></i>שיחות
+            </button>
+            <button class="nav-tab" onclick="switchTab('costs')" id="navCosts" role="tab" aria-selected="false" aria-controls="tab-costs">
+                <i class="fas fa-dollar-sign" style="margin-left: 6px;" aria-hidden="true"></i>בינה עלויות
+            </button>
+            <button class="nav-tab" onclick="switchTab('coupons')" id="navCoupons" role="tab" aria-selected="false" aria-controls="tab-coupons">
+                <i class="fas fa-ticket-alt" style="margin-left: 6px;" aria-hidden="true"></i>קופונים
+            </button>
+            <button class="nav-tab" onclick="switchTab('chatusers')" id="navChatusers" role="tab" aria-selected="false" aria-controls="tab-chatusers">
+                <i class="fas fa-user-cog" style="margin-left: 6px;" aria-hidden="true"></i>משתמשי בינת
+            </button>
+        </div>
+    </nav>
+
+    <!-- Tab: Metrics (default/landing) -->
+    <div class="tab-content active" id="tab-metrics" role="tabpanel" aria-labelledby="navMetrics">
+    <div class="dash-section" id="metricsSection">
+        <div class="dash-section-header">
+            <h3>מדדים</h3>
+            <div style="display: flex; gap: 4px; background: #f1f5f9; border-radius: 28px; padding: 4px;">
+                <button onclick="setMetricsRange('week')" class="metrics-range-btn active" id="rangeWeek">7 ימים</button>
+                <button onclick="setMetricsRange('month')" class="metrics-range-btn" id="rangeMonth">30 ימים</button>
+                <button onclick="setMetricsRange('year')" class="metrics-range-btn" id="rangeYear">שנה</button>
+                <button onclick="setMetricsRange('all')" class="metrics-range-btn" id="rangeAll">הכל</button>
+            </div>
+        </div>
+        <div style="padding: 24px;">
+            <!-- KPI Cards Row -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;">
+                <div class="metrics-kpi" style="background: linear-gradient(135deg, #0b2e6b, #1a3f7a); cursor: pointer;" onclick="filterByMetric('completions')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" style="color: white;" id="metricCompletions">—</div>
+                    <div class="metrics-kpi-label" style="color: rgba(255,255,255,0.7);">השלמות</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('today')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricToday">—</div>
+                    <div class="metrics-kpi-label">אובחנו היום</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('diagnosed')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricDiagnosed">—</div>
+                    <div class="metrics-kpi-label">נבדקו ע"י מאבחן</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('not_diagnosed')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricNotDiagnosed">—</div>
+                    <div class="metrics-kpi-label">לא נבדקו ע"י מאבחן</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="showActiveUsers()" title="לחץ לפרטים">
+                    <div class="metrics-kpi-value" id="metricActiveUsers">—</div>
+                    <div class="metrics-kpi-label">משתמשים מחוברים</div>
+                </div>
+            </div>
+            <!-- Secondary KPI Row -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px;">
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('peakDay')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricPeakDay">—</div>
+                    <div class="metrics-kpi-label" id="metricPeakDayLabel">ביום השיא</div>
+                </div>
+                <div class="metrics-kpi" style="cursor: pointer;" onclick="filterByMetric('needsVerification')" title="לחץ לסינון">
+                    <div class="metrics-kpi-value" id="metricNeedsVerification">—</div>
+                    <div class="metrics-kpi-label">נדרש אימות אנושי</div>
+                </div>
+            </div>
+            <!-- Charts Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: white; border-radius: 14px; padding: 20px; border: 1px solid #e8ecf4; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <h4 style="font-size: 13px; font-weight: 700; color: #0b2e6b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">התפלגות קודי PDN</h4>
+                    <div id="metricCodeDistribution"></div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div style="background: white; border-radius: 14px; padding: 20px; border: 1px solid #e8ecf4; box-shadow: 0 1px 3px rgba(0,0,0,0.04); flex: 1;">
+                        <h4 style="font-size: 13px; font-weight: 700; color: #0b2e6b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">נפח יומי</h4>
+                        <div id="metricDailyVolume"></div>
+                    </div>
+                    <div style="background: white; border-radius: 14px; padding: 20px; border: 1px solid #e8ecf4; box-shadow: 0 1px 3px rgba(0,0,0,0.04); flex: 1;">
+                        <h4 style="font-size: 13px; font-weight: 700; color: #0b2e6b; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">התאמה מערכת / מאבחן</h4>
+                        <div id="metricCodeMatchChart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div><!-- end tab-metrics -->
+
+    <!-- Tab: Users (Data Table) -->
+    <div class="tab-content" id="tab-users" role="tabpanel" aria-labelledby="navUsers">
+    <!-- Main Data Table -->
+    <div class="dash-section">
+        <div class="dash-section-header" style="flex-direction: column; align-items: stretch; gap: 0;">
+            <!-- Single unified toolbar row -->
+            <div class="table-toolbar">
+                <div class="toolbar-right">
+                    <h3 style="margin: 0; font-size: 15px;">נתוני מאובחנים</h3>
+                    <span id="rowCount" class="toolbar-badge" aria-live="polite">סה"כ: 0</span>
+                </div>
+                <div class="toolbar-center">
+                    <div class="toolbar-search">
+                        <i class="fas fa-search"></i>
+                        <input type="search" id="tableSearchInput" placeholder="חיפוש שם או אימייל..."
+                               autocomplete="off"
+                               name="table-filter-xyz"
+                               data-form-type="other"
+                               data-lpignore="true"
+                               readonly
+                               onfocus="this.removeAttribute('readonly'); this.parentElement.classList.add('focused')"
+                               oninput="handleTableSearch()"
+                               onblur="this.parentElement.classList.remove('focused')">
+                    </div>
+                    <div class="toolbar-filters">
+                        <select id="quickFilterTime" onchange="quickTagFilter(this.value, 'time')" aria-label="סינון לפי זמן" autocomplete="off">
+                            <option value="">תקופה</option>
+                            <option value="day">יום אחרון</option>
+                            <option value="week">שבוע</option>
+                            <option value="month">חודש</option>
+                        </select>
+                        <select id="quickFilterStatus" onchange="quickTagFilter(this.value, 'status')" aria-label="סינון לפי סטטוס" autocomplete="off">
+                            <option value="">סטטוס</option>
+                            <option value="valid">תקין</option>
+                            <option value="needs_verification">לבדיקה</option>
+                            <option value="diagnosed">נבדק ע"י מאבחן</option>
+                            <option value="not_diagnosed">לא נבדק ע"י מאבחן</option>
+                        </select>
+                        <select id="quickFilterTrait" onchange="quickTagFilter(this.value, 'trait')" aria-label="סינון לפי תכונה" autocomplete="off">
+                            <option value="">תכונה</option>
+                            <option value="A">A</option>
+                            <option value="T">T</option>
+                            <option value="P">P</option>
+                            <option value="E">E</option>
+                        </select>
+                        <select id="quickFilterEnergy" onchange="quickTagFilter(this.value, 'energy')" aria-label="סינון לפי אנרגיה" autocomplete="off">
+                            <option value="">אנרגיה</option>
+                            <option value="D">D</option>
+                            <option value="S">S</option>
+                            <option value="F">F</option>
+                        </select>
+                        <select id="quickFilterCoupon" onchange="quickTagFilter(this.value, 'coupon')" aria-label="סינון לפי קופון" autocomplete="off">
+                            <option value="">קופון</option>
+                        </select>
+                        <button id="clearFiltersBtn" onclick="clearAllFilters()" class="toolbar-clear-btn">
+                            <i class="fas fa-times"></i> נקה
+                        </button>
+                    </div>
+                </div>
+                <div class="toolbar-left">
+                    <button onclick="toggleSortMode()" class="toolbar-action-btn" id="sortModeBtn" title="מיון לפי דחיפות / תאריך">
+                        <i class="fas fa-sort-amount-down"></i> דחיפות
+                    </button>
+                    <button onclick="toggleSecondaryColumns()" class="toolbar-action-btn" id="toggleColsBtn" title="הצג/הסתר עמודות נוספות">
+                        <i class="fas fa-columns"></i> עמודות
+                    </button>
+                    <button onclick="exportTableCSV()" class="toolbar-action-btn">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </button>
+                    <button onclick="sendAlgorithmReport()" class="toolbar-action-btn">
+                        <i class="fas fa-calculator"></i> חישוב PDN
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 0;">
+            <!-- Bulk Action Bar (hidden until rows are selected) -->
+            <div id="bulkActionBar" style="display:none;padding:10px 20px;background:linear-gradient(135deg,#0b2e6b,#1a3f7a);border-bottom:1px solid #e2e8f0;display:none;align-items:center;justify-content:space-between;gap:12px;animation:fadeIn 0.2s ease;">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font-size:13px;font-weight:600;color:white;" id="bulkSelectedCount">0 נבחרו</span>
+                    <span style="width:1px;height:20px;background:rgba(255,255,255,0.3);"></span>
+                    <!-- Per-user actions (visible when exactly 1 selected) -->
+                    <span id="singleUserActions" style="display:none;display:contents;">
+                        <button onclick="singleAction('journey')" style="padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:11px;cursor:pointer;" title="מסע משתמש">
+                            <i class="fas fa-route"></i>
+                        </button>
+                        <button onclick="singleAction('questionnaire')" style="padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:11px;cursor:pointer;" title="צפה בשאלון">
+                            <i class="fas fa-clipboard-list"></i>
+                        </button>
+                        <button onclick="singleAction('voice')" style="padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:11px;cursor:pointer;" title="האזן להקלטה">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button onclick="singleAction('diagnose')" style="padding:5px 10px;border-radius:6px;border:none;background:rgba(255,255,255,0.12);color:white;font-size:11px;cursor:pointer;" title="ערוך אבחון">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <span style="width:1px;height:20px;background:rgba(255,255,255,0.3);"></span>
+                    </span>
+                    <!-- Bulk actions (always visible) -->
+                    <button onclick="bulkSendEmail('pdn')" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-envelope"></i> שלח PDN
+                    </button>
+                    <button onclick="bulkSendEmail('binat')" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-comments"></i> שלח בינת
+                    </button>
+                    <button onclick="bulkRecalculate()" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-calculator"></i> חשב מחדש
+                    </button>
+                    <button onclick="bulkExportSelected()" style="padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-file-csv"></i> ייצוא CSV
+                    </button>
+                    <button id="pdnAnalysisBtn" onclick="openPdnAnalysis()" style="display:none;padding:6px 14px;border-radius:8px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-chart-bar"></i> דוח תשובות ומטריצות
+                    </button>
+                </div>
+                <button onclick="clearSelection()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,0.3);background:transparent;color:white;font-size:12px;font-weight:600;cursor:pointer;">
+                    <i class="fas fa-times"></i> נקה
+                </button>
+            </div>
+            <div class="table-container overflow-x-auto">
+                <table class="w-full cols-hidden" id="usersTable">
+                    <thead class="table-header sticky top-0">
+                    <tr>
+                        <th class="px-2 py-4 text-center" style="width:40px;">
+                            <input type="checkbox" id="selectAllRows" onchange="toggleSelectAll(this)" title="בחר הכל"
+                                   style="width:16px;height:16px;cursor:pointer;accent-color:#0b2e6b;">
+                        </th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 col-secondary" title="מזהה מערכת">מזהה מערכת</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="שם" onclick="sortTable('name')" aria-sort="none" id="th-name">
+                            שם <span class="sort-indicator text-blue-600 text-sm" data-col="name"></span>
+                        </th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="אימייל" onclick="sortTable('email')" aria-sort="none" id="th-email">
+                            אימייל <span class="sort-indicator text-blue-600 text-sm" data-col="email"></span>
+                        </th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="תאריך איבחון" onclick="sortTable('date')" aria-sort="descending" id="th-date">
+                            תאריך <span class="sort-indicator text-blue-600 text-sm" data-col="date">↓</span>
+                        </th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="קוד המערכת" onclick="sortTable('pdn_code')" aria-sort="none" id="th-pdn_code">
+                            קוד מערכת <span class="sort-indicator text-blue-600 text-sm" data-col="pdn_code"></span>
+                        </th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="סטטוס אימות" onclick="sortTable('needs_verification')" aria-sort="none" id="th-needs_verification">
+                            אימות <span class="sort-indicator text-blue-600 text-sm" data-col="needs_verification"></span>
+                        </th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="קוד מאבחן" onclick="sortTable('diagnose_pdn_code')" aria-sort="none" id="th-diagnose_pdn_code">
+                            קוד מאבחן <span class="sort-indicator text-blue-600 text-sm" data-col="diagnose_pdn_code"></span>
+                        </th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700" title="הערות המאבחן">הערות</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 col-secondary" title="הערות עדכון קוד פדן">עדכון קוד פדן</th>
+                        <th class="px-4 py-4 text-right font-semibold text-gray-700 cursor-pointer hover:bg-gray-50"
+                            title="קופון" onclick="sortTable('coupon_code')" aria-sort="none" id="th-coupon_code">
+                            קופון <span class="sort-indicator text-blue-600 text-sm" data-col="coupon_code"></span>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div><!-- end tab-users -->
+
+    <!-- Tab: Stats (Conversation Statistics) -->
+    <div class="tab-content" id="tab-stats" role="tabpanel" aria-labelledby="navStats">
+        <!-- Conversation Stats -->
+        <div class="dash-section">
+            <div class="dash-section-header">
+                <h3><i class="fas fa-comments" style="margin-left: 8px; color: #0b2e6b;"></i>סטטיסטיקות שיחות בינת קוד המקור</h3>
+                <div style="display: flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 3px;">
+                    <button class="stats-period-btn" data-days="7" onclick="loadConversationStats(7)"
+                            style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #0b2e6b; color: white;">7 ימים</button>
+                    <button class="stats-period-btn" data-days="30" onclick="loadConversationStats(30)"
+                            style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">30 ימים</button>
+                    <button class="stats-period-btn" data-days="365" onclick="loadConversationStats(365)"
+                            style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">הכל</button>
+                </div>
+            </div>
+            <div style="padding: 20px 24px;">
+                <div id="conversationStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+        </div>
+    </div><!-- end tab-stats -->
+
+    <!-- Tab: Costs (Token Usage) -->
+    <div class="tab-content" id="tab-costs" role="tabpanel" aria-labelledby="navCosts">
+        <div class="dash-section">
+            <div class="dash-section-header">
+                <h3><i class="fas fa-dollar-sign" style="margin-left: 8px; color: #0b2e6b;"></i>מחשבון עלויות בינת קוד המקור</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="display: flex; gap: 4px; background: #f1f5f9; border-radius: 8px; padding: 3px;">
+                        <button class="token-period-btn" data-days="7" onclick="loadTokenUsage(7)"
+                                style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #0b2e6b; color: white;">7 ימים</button>
+                        <button class="token-period-btn" data-days="30" onclick="loadTokenUsage(30)"
+                                style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">30 ימים</button>
+                        <button class="token-period-btn" data-days="365" onclick="loadTokenUsage(365)"
+                                style="padding: 5px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: transparent; color: #64748b;">הכל</button>
+                    </div>
+                    <button onclick="loadTokenUsage()" class="header-btn primary" style="padding: 6px 12px; font-size: 11px;">
+                        <i class="fas fa-sync-alt"></i><span>רענן</span>
+                    </button>
+                </div>
+            </div>
+            <div style="padding: 20px 24px;">
+                <div id="tokenUsageContent">
+                    <div style="text-align: center; padding: 32px 16px; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                        <i class="fas fa-chart-line" style="font-size: 24px; color: #94a3b8; margin-bottom: 8px; display: block;"></i>
+                        <p style="font-size: 13px; color: #64748b; margin: 0;">טוען נתוני עלויות...</p>
+                    </div>
+                </div>
+                <div id="avgCostHighlight" style="display: none; margin-top: 16px; padding: 16px 20px; background: linear-gradient(135deg, #0b2e6b 0%, #1a3f7a 100%); border-radius: 12px; text-align: center;">
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 4px;">עלות ממוצעת לקריאה</div>
+                    <div id="avgCostValue" style="font-size: 24px; font-weight: 800; color: white;">—</div>
+                </div>
+            </div>
+        </div>
+    </div><!-- end tab-costs -->
+
+    <!-- Tab: Coupons -->
+    <div class="tab-content" id="tab-coupons" role="tabpanel" aria-labelledby="navCoupons">
+        <div class="dash-section">
+            <div class="dash-section-header">
+                <h3><i class="fas fa-ticket-alt" style="margin-left: 8px; color: #0b2e6b;"></i>ניהול קופונים</h3>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="openCreateCouponModal()" class="header-btn primary" style="padding: 8px 16px; font-size: 12px;">
+                        <i class="fas fa-plus"></i>
+                        <span>צור קופון</span>
+                    </button>
+                </div>
+            </div>
+            <div style="padding: 20px 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span id="couponCount" style="font-size: 13px; color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 12px; font-weight: 600;">סה"כ: 0</span>
+                </div>
+                <div style="overflow-x: auto; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">קוד</th>
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">שם</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">שימוש</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">סטטוס</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="couponsTableBody">
+                            <tr><td colspan="5" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> טוען...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div><!-- end tab-coupons -->
+
+    <!-- Tab: Chat Users -->
+    <div class="tab-content" id="tab-chatusers" role="tabpanel" aria-labelledby="navChatusers">
+        <div class="dash-section">
+            <div class="dash-section-header">
+                <h3><i class="fas fa-user-cog" style="margin-left: 8px; color: #0b2e6b;"></i>ניהול משתמשים בינת קוד המקור</h3>
+                <button onclick="openAddUserModal()" class="header-btn primary" style="padding: 8px 16px; font-size: 12px;">
+                    <i class="fas fa-user-plus"></i>
+                    <span>הוסף משתמש</span>
+                </button>
+            </div>
+            <div style="padding: 20px 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span id="chatUserCount" style="font-size: 13px; color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 12px; font-weight: 600;">סה"כ: 0</span>
+                </div>
+                <div style="overflow-x: auto; border-radius: 10px; border: 1px solid #e2e8f0;">
+                    <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">אימייל</th>
+                                <th style="padding: 12px 16px; text-align: right; font-weight: 600; color: #475569;">שם</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">מין</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">קוד PDN</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">מגבלת שיחות</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">ימי גישה</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">תאריך יצירה</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">אישור תנאים</th>
+                                <th style="padding: 12px 16px; text-align: center; font-weight: 600; color: #475569;">פעולות</th>
+                            </tr>
+                        </thead>
+                        <tbody id="chatUsersTableBody">
+                            <tr><td colspan="9" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="margin-left: 8px;"></i> טוען...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div><!-- end tab-chatusers -->
+
+</div><!-- end dashboard -->
+
+
+<!-- Create Coupon Modal -->
+<div id="createCouponModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="יצירת קופון" style="display:none;">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 480px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-plus-circle" style="margin-left: 8px; color: #0b2e6b;"></i> יצירת קופון
+            </h2>
+            <button onclick="closeModal('createCouponModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="createCouponForm" onsubmit="handleCreateCoupon(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+                <label for="couponName" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">שם הקופון</label>
+                <input type="text" id="couponName" required
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       placeholder="לדוגמה: סדנה מרץ 2025"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+                <label for="couponMaxUsage" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">מגבלת שימוש</label>
+                <input type="number" id="couponMaxUsage" required min="1" value="50"
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       dir="ltr"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 13px; font-weight: 500; color: #374151;">קוד קופון</label>
+                    <label style="font-size: 12px; color: #64748b; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" id="customCodeToggle" onchange="toggleCustomCode()"
+                               style="width: 14px; height: 14px; cursor: pointer;">
+                        קוד מותאם אישית
+                    </label>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" id="couponCodePreview" readonly
+                           style="flex: 1; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #f8fafc; color: #0b2e6b; font-weight: 600; letter-spacing: 1px; outline: none; direction: ltr; text-align: center;"
+                           placeholder="טוען...">
+                    <button type="button" id="regenerateCodeBtn" onclick="regenerateCouponCode()"
+                            style="padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; background: white; cursor: pointer; color: #0b2e6b; transition: all 0.2s;"
+                            title="צור קוד חדש">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <input type="text" id="couponCustomCode" style="display: none; width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; margin-top: 8px; direction: ltr; text-align: center; letter-spacing: 1px;"
+                       placeholder="4-20 תווים אלפאנומריים" maxlength="20"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div id="createCouponError" style="display: none; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 13px; color: #dc2626;"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 8px;">
+                <button type="submit" class="header-btn primary" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-save"></i> צור קופון
+                </button>
+                <button type="button" onclick="closeModal('createCouponModal')" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-times"></i> ביטול
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Coupon Modal -->
+<div id="editCouponModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="עריכת קופון" style="display:none;">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 480px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-edit" style="margin-left: 8px; color: #0b2e6b;"></i> עריכת קופון
+            </h2>
+            <button onclick="closeModal('editCouponModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="editCouponForm" onsubmit="handleEditCoupon(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <input type="hidden" id="editCouponCode" value="">
+            <div>
+                <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">קוד קופון</label>
+                <div id="editCouponCodeDisplay" style="padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #f8fafc; color: #64748b; direction: ltr; text-align: center; letter-spacing: 1px; font-weight: 600;"></div>
+            </div>
+            <div>
+                <label for="editCouponName" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">שם הקופון</label>
+                <input type="text" id="editCouponName" required
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+                <label for="editCouponMaxUsage" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">מגבלת שימוש</label>
+                <input type="number" id="editCouponMaxUsage" required min="1"
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       dir="ltr"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div id="editCouponError" style="display: none; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 13px; color: #dc2626;"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 8px;">
+                <button type="submit" class="header-btn primary" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-save"></i> שמור
+                </button>
+                <button type="button" onclick="closeModal('editCouponModal')" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-times"></i> ביטול
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Coupon Confirmation Modal -->
+<div id="deleteCouponModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="מחיקת קופון" style="display:none;">
+    <div class="card p-6 w-full mx-4 rounded-2xl" style="max-width: 400px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 48px; height: 48px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-trash-alt" style="color: #dc2626; font-size: 18px;"></i>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 8px;">מחיקת קופון</h3>
+            <p id="deleteCouponMessage" style="font-size: 14px; color: #64748b; margin: 0;">האם אתה בטוח שברצונך למחוק קופון זה?</p>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <button onclick="confirmDeleteCoupon()" class="header-btn danger" style="justify-content: center; padding: 12px;">
+                <i class="fas fa-trash-alt"></i> מחק
+            </button>
+            <button onclick="closeModal('deleteCouponModal')" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                ביטול
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Coupon Usage Modal -->
+<div id="couponUsageModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="שימושי קופון" style="display:none;">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 500px; max-height: 70vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-list" style="margin-left: 8px; color: #0b2e6b;"></i> שימושי קופון
+            </h2>
+            <button onclick="closeModal('couponUsageModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="couponUsageInfo" style="margin-bottom: 16px; padding: 12px 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="couponUsageCode" style="font-weight: 700; color: #0b2e6b; direction: ltr;"></span>
+                <span id="couponUsageCount" style="font-size: 12px; color: #64748b;"></span>
+            </div>
+        </div>
+        <div id="couponUsageContent">
+            <div style="text-align: center; padding: 32px; color: #94a3b8;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 20px;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Send Coupon Email Modal -->
+<div id="sendCouponEmailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="שליחת קופון באימייל" style="display:none;">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 480px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-envelope" style="margin-left: 8px; color: #d97706;"></i> שליחת קופון באימייל
+            </h2>
+            <button onclick="closeModal('sendCouponEmailModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="sendCouponEmailInfo" style="margin-bottom: 16px; padding: 12px 16px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; color: #64748b;">קוד קופון:</span>
+                <span id="sendCouponEmailCode" style="font-weight: 700; color: #0b2e6b; direction: ltr; letter-spacing: 1px;"></span>
+            </div>
+        </div>
+        <form id="sendCouponEmailForm" onsubmit="handleSendCouponEmail(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+                <label for="couponRecipientEmail" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">אימייל הנמען</label>
+                <input type="email" id="couponRecipientEmail" required
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; direction: ltr;"
+                       placeholder="user@example.com"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div id="sendCouponEmailError" style="display: none; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 13px; color: #dc2626;"></div>
+            <div id="sendCouponEmailSuccess" style="display: none; padding: 10px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 13px; color: #166534;"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 8px;">
+                <button type="submit" class="header-btn primary" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-paper-plane"></i> שלח
+                </button>
+                <button type="button" onclick="closeModal('sendCouponEmailModal')" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-times"></i> סגור
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Questionnaire Modal -->
+<div id="questionnaireModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="נתוני שאלון">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 900px; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-clipboard-list" style="margin-left: 8px; color: #0b2e6b;"></i> נתוני שאלון
+            </h2>
+            <button onclick="closeModal('questionnaireModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="questionnaireContent" class="space-y-4">
+        </div>
+    </div>
+</div>
+
+<!-- Voice Modal -->
+<div id="voiceModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="ניתוח קול">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 600px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-microphone" style="margin-left: 8px; color: #0b2e6b;"></i> ניתוח קול
+            </h2>
+            <button onclick="closeModal('voiceModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="voiceContent" class="space-y-4">
+        </div>
+    </div>
+</div>
+
+<!-- Edit Diagnose Modal -->
+<div id="editDiagnoseModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="עריכת אבחון">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 600px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-edit" style="margin-left: 8px; color: #0b2e6b;"></i> עריכת אבחון
+            </h2>
+            <button onclick="closeModal('editDiagnoseModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="editDiagnoseForm" class="space-y-4">
+            <div>
+                <label for="diagnosePdnCode" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                    קוד PDN אבחון
+                </label>
+                <select id="diagnosePdnCode" name="diagnose_pdn_code"
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; background: white; cursor: pointer;"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+                    <option value="">בחר קוד PDN</option>
+                    <option value="A3">A3</option>
+                    <option value="A7">A7</option>
+                    <option value="A11">A11</option>
+                    <option value="E1">E1</option>
+                    <option value="E5">E5</option>
+                    <option value="E9">E9</option>
+                    <option value="P2">P2</option>
+                    <option value="P6">P6</option>
+                    <option value="P10">P10</option>
+                    <option value="T4">T4</option>
+                    <option value="T8">T8</option>
+                    <option value="T12">T12</option>
+                </select>
+            </div>
+            <div>
+                <label for="diagnoseComments" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                    הערות אבחון
+                </label>
+                <textarea id="diagnoseComments" name="diagnose_comments" rows="4"
+                          style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; resize: vertical; transition: border-color 0.2s;"
+                          onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 8px;">
+                <button type="submit" class="header-btn primary" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-save"></i> שמור
+                </button>
+                <button type="button" onclick="closeModal('editDiagnoseModal')" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-times"></i> סגור
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Logged In Users Modal -->
+<div id="loggedInUsersModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="משתמשים מחוברים">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 600px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-users" style="margin-left: 8px; color: #0b2e6b;"></i> משתמשים מחוברים
+            </h2>
+            <button onclick="closeModal('loggedInUsersModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="loggedInUsersContent" class="space-y-4">
+        </div>
+    </div>
+</div>
+
+<!-- PDN Calculation Details Modal -->
+<div id="pdnCalculationModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="פירוט חישוב קוד PDN">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-calculator" style="margin-left: 8px; color: #0b2e6b;"></i> פירוט חישוב קוד PDN
+            </h2>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button onclick="closeModal('pdnCalculationModal')" aria-label="סגור"
+                        style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div id="pdnCalculationContent" class="space-y-4">
+        </div>
+    </div>
+</div>
+
+<!-- Release Notes Modal -->
+<div id="releaseNotesModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="הערות גרסה">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-code-branch" style="margin-left: 8px; color: #0b2e6b;"></i> הערות גרסה
+            </h2>
+            <button onclick="closeModal('releaseNotesModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="releaseNotesContent" class="space-y-4">
+        </div>
+    </div>
+</div>
+
+<!-- User Journey Modal -->
+<div id="journeyModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="מסע משתמש">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">מסע משתמש</h2>
+            <button onclick="closeModal('journeyModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="journeyContent" class="space-y-4">
+        </div>
+    </div>
+</div>
+
+<!-- User Add/Edit Modal -->
+<div id="userFormModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="טופס משתמש" style="display:none;">
+    <div class="card p-8 w-full mx-4 rounded-2xl" style="max-width: 480px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 id="userFormTitle" style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">
+                <i class="fas fa-user-plus" style="margin-left: 8px; color: #0b2e6b;"></i> הוסף משתמש
+            </h2>
+            <button onclick="closeModal('userFormModal')" aria-label="סגור"
+                    style="color: #94a3b8; font-size: 20px; border: none; background: none; cursor: pointer; padding: 4px;">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="userForm" onsubmit="handleUserFormSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+            <input type="hidden" id="userFormMode" value="add">
+            <input type="hidden" id="userFormOriginalEmail" value="">
+            <div>
+                <label for="userFormEmail" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">אימייל</label>
+                <input type="email" id="userFormEmail" required
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       placeholder="user@example.com" dir="ltr"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+                <label for="userFormPassword" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">סיסמה</label>
+                <input type="text" id="userFormPassword"
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       placeholder="סיסמה" dir="ltr"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+                <label for="userFormName" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">שם</label>
+                <input type="text" id="userFormName" required
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       placeholder="שם המשתמש"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+                <label for="userFormGender" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">מין</label>
+                <select id="userFormGender" required
+                        style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; background: white; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+                    <option value="">בחר...</option>
+                    <option value="male">גבר</option>
+                    <option value="female">אישה</option>
+                </select>
+            </div>
+            <div>
+                <label for="userFormPdnCode" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">קוד PDN</label>
+                <select id="userFormPdnCode" required
+                        style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; background: white; transition: border-color 0.2s;"
+                        onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+                    <option value="">בחר קוד PDN...</option>
+                </select>
+            </div>
+            <div>
+                <label for="userFormLimit" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">מגבלת שיחות יומית</label>
+                <input type="number" id="userFormLimit" required min="1" value="15"
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       dir="ltr"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div>
+                <label for="userFormAccessDays" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">ימי גישה <span style="color:#6b7280; font-weight:400;">(0 = ללא הגבלה)</span></label>
+                <input type="number" id="userFormAccessDays" required min="0" value="0"
+                       style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s;"
+                       dir="ltr"
+                       onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'">
+            </div>
+            <div class="form-group-terms-audit" style="display:none;">
+                <label style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                    <i class="fas fa-shield-alt" style="margin-left:5px; color:#6b7280;"></i>אישור תנאי שימוש
+                </label>
+                <div id="userFormTermsInfo"
+                     style="padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 13px; color: #374151;">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 8px;">
+                <button type="submit" class="header-btn primary" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-save"></i> שמור
+                </button>
+                <button type="button" onclick="closeModal('userFormModal')" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                    <i class="fas fa-times"></i> ביטול
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete User Confirmation Modal -->
+<div id="deleteUserModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="אישור מחיקה" style="display:none;">
+    <div class="card p-6 w-full mx-4 rounded-2xl" style="max-width: 400px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 48px; height: 48px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-trash-alt" style="color: #dc2626; font-size: 18px;"></i>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 8px;">מחיקת משתמש</h3>
+            <p id="deleteUserMessage" style="font-size: 14px; color: #64748b; margin: 0;">האם אתה בטוח שברצונך למחוק משתמש זה?</p>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <button onclick="confirmDeleteUser()" class="header-btn danger" style="justify-content: center; padding: 12px;">
+                <i class="fas fa-trash-alt"></i> מחק
+            </button>
+            <button onclick="closeModal('deleteUserModal')" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                ביטול
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Password Modal -->
+<div id="adminPasswordModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-label="אימות מנהל">
+    <div class="card p-6 w-full mx-4 rounded-2xl" style="max-width: 400px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 48px; height: 48px; background: rgba(11, 46, 107, 0.08); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-lock" style="color: #0b2e6b; font-size: 18px;"></i>
+            </div>
+            <p id="passwordModalMessage" style="font-size: 14px; color: #64748b; margin: 0;"></p>
+        </div>
+        <div style="margin-bottom: 16px;">
+            <label for="adminPasswordInput" style="display: block; font-size: 12px; font-weight: 600; color: #475569; margin-bottom: 8px; text-align: center;">סיסמת מנהל</label>
+            <input type="password" id="adminPasswordInput" placeholder="הזן סיסמה..." autocomplete="off"
+                   style="width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 16px; text-align: center; outline: none; transition: border-color 0.2s; letter-spacing: 2px;"
+                   onfocus="this.style.borderColor='#0b2e6b'" onblur="this.style.borderColor='#e2e8f0'"
+                   onkeydown="if(event.key==='Enter') submitPasswordModal(); if(event.key==='Escape') cancelPasswordModal();">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <button onclick="submitPasswordModal()" class="header-btn primary" style="justify-content: center; padding: 12px;">
+                אישור
+            </button>
+            <button onclick="cancelPasswordModal()" class="header-btn outline" style="justify-content: center; padding: 12px;">
+                ביטול
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; backdrop-filter: blur(4px);"
+     class="flex items-center justify-center">
+    <div class="card" style="padding: 32px; text-align: center; border-radius: 16px;">
+        <div style="width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: #0b2e6b; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;"></div>
+        <p style="font-size: 14px; font-weight: 500; color: #64748b; margin: 0;">טוען נתונים...</p>
+    </div>
+</div>
+
+<script>
+    // Red filter toggle helper
+    function toggleRedFilter() {
+        const checkbox = document.getElementById('redUsersFilter');
+        const chip = document.getElementById('redUsersFilterChip');
+        checkbox.checked = !checkbox.checked;
+        chip.classList.toggle('active', checkbox.checked);
+        handleFilter();
+    }
+
+    // Modal focus trap
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modals = document.querySelectorAll('.modal-backdrop');
+            modals.forEach(modal => {
+                if (modal.style.display === 'flex') {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+        // Trap focus inside open modal
+        if (e.key === 'Tab') {
+            const openModal = document.querySelector('.modal-backdrop[style*="display: flex"]');
+            if (!openModal) return;
+            const focusable = openModal.querySelectorAll('button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
+    });
+
+    // Stat card click handler
+    function handleStatClick(type) {
+        const redUsersFilterChip = document.getElementById('redUsersFilterChip');
+        switch(type) {
+            case 'total':
+                // Clear all filters and show all data
+                document.getElementById('searchInput').value = '';
+                const redCheckbox = document.getElementById('redUsersFilter');
+                if (redCheckbox && redCheckbox.checked) {
+                    redCheckbox.checked = false;
+                    if (redUsersFilterChip) redUsersFilterChip.classList.remove('active');
+                }
+                handleSearch();
+                handleFilter();
+                // Scroll to table
+                document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                break;
+            case 'today':
+                // Clear other filters first
+                document.getElementById('searchInput').value = '';
+                const redCb = document.getElementById('redUsersFilter');
+                if (redCb && redCb.checked) {
+                    redCb.checked = false;
+                    if (redUsersFilterChip) redUsersFilterChip.classList.remove('active');
+                }
+                // Filter by today's date directly on currentData
+                const today = new Date();
+                const todayStr = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+                const todayFiltered = currentData.filter(user => user.date && user.date.includes(todayStr));
+                renderTable(todayFiltered);
+                document.getElementById('rowCount').textContent = `אובחנו היום: ${todayFiltered.length}`;
+                document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                break;
+            case 'anomalies':
+                // Filter to show only red/anomaly users directly
+                document.getElementById('searchInput').value = '';
+                const redCbAnom = document.getElementById('redUsersFilter');
+                if (redCbAnom) redCbAnom.checked = true;
+                if (redUsersFilterChip) redUsersFilterChip.classList.add('active');
+                applyChatUserFilters();
+                document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                break;
+            case 'active':
+                // Show logged in users modal
+                showLoggedInUsers();
+                break;
+        }
+    }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    // ===== Coupon Management Functions =====
+    let couponData = [];
+    let deleteCouponCode = null;
+    let generatedCouponCode = '';
+
+    function getCouponSessionToken() {
+        return localStorage.getItem('adminSessionToken');
+    }
+
+    function refreshAllData() {
+        // Refresh main data table
+        if (typeof loadData === 'function') loadData();
+        // Refresh coupons if the section is open
+        loadCoupons();
+        // Refresh logged-in users count
+        if (typeof loadLoggedInUsersCount === 'function') loadLoggedInUsersCount();
+    }
+
+    async function loadCoupons() {
+        const token = getCouponSessionToken();
+        if (!token) return;
+        try {
+            const response = await fetch(`/pdn-admin/coupons?session_token=${token}`);
+            if (!response.ok) {
+                if (response.status === 401) return;
+                throw new Error('Failed to load coupons');
+            }
+            const data = await response.json();
+            couponData = data.coupons || [];
+            renderCouponsTable();
+        } catch (error) {
+            console.error('Error loading coupons:', error);
+            document.getElementById('couponsTableBody').innerHTML =
+                '<tr><td colspan="5" style="text-align: center; padding: 32px; color: #dc2626;">שגיאה בטעינת קופונים</td></tr>';
+        }
+    }
+
+    function renderCouponsTable() {
+        const tbody = document.getElementById('couponsTableBody');
+        document.getElementById('couponCount').textContent = `סה"כ: ${couponData.length}`;
+
+        if (couponData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-ticket-alt" style="margin-left: 8px; font-size: 18px;"></i>אין קופונים עדיין</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = couponData.map(coupon => {
+            const status = coupon.status || (coupon.usage_count < coupon.max_usage ? 'active' : 'full');
+            const statusBadge = status === 'active'
+                ? '<span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #dcfce7; color: #166534;">פעיל</span>'
+                : '<span style="display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #fef2f2; color: #dc2626;">מלא</span>';
+
+            return `<tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+                <td style="padding: 12px 16px; font-weight: 600; color: #0b2e6b; direction: ltr; text-align: right; letter-spacing: 0.5px;">
+                    <span style="display: inline-flex; align-items: center; gap: 6px;">
+                        ${coupon.code}
+                        <button onclick="copyToClipboard('${coupon.code}')" title="העתק קוד" style="padding: 3px 6px; border: none; background: transparent; cursor: pointer; color: #94a3b8; font-size: 11px; transition: color 0.2s;" onmouseover="this.style.color='#0b2e6b'" onmouseout="this.style.color='#94a3b8'">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </span>
+                </td>
+                <td style="padding: 12px 16px; color: #374151;">${coupon.name}</td>
+                <td style="padding: 12px 16px; text-align: center; color: #64748b; direction: ltr;">${coupon.usage_count}/${coupon.max_usage}</td>
+                <td style="padding: 12px 16px; text-align: center;">${statusBadge}</td>
+                <td style="padding: 12px 16px; text-align: center;">
+                    <div style="display: flex; gap: 6px; justify-content: center;">
+                        <button onclick="openEditCouponModal('${coupon.code}')" title="ערוך"
+                                style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer; color: #0b2e6b; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="openCouponUsageModal('${coupon.code}')" title="צפה בשימושים"
+                                style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer; color: #059669; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="openSendCouponEmailModal('${coupon.code}')" title="שלח אימייל"
+                                style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer; color: #d97706; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                        <button onclick="openDeleteCouponModal('${coupon.code}', '${coupon.name}')" title="מחק"
+                                style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; background: white; cursor: pointer; color: #dc2626; font-size: 12px; transition: all 0.2s;"
+                                onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    // --- Create Coupon ---
+    async function openCreateCouponModal() {
+        document.getElementById('createCouponForm').reset();
+        document.getElementById('createCouponError').style.display = 'none';
+        document.getElementById('customCodeToggle').checked = false;
+        document.getElementById('couponCustomCode').style.display = 'none';
+        document.getElementById('couponCodePreview').style.display = '';
+        document.getElementById('regenerateCodeBtn').style.display = '';
+        await regenerateCouponCode();
+        document.getElementById('createCouponModal').style.display = 'flex';
+    }
+
+    async function regenerateCouponCode() {
+        // Generate a random 8-char code [A-Z0-9] client-side for preview
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 8; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        generatedCouponCode = code;
+        document.getElementById('couponCodePreview').value = code;
+    }
+
+    function toggleCustomCode() {
+        const isCustom = document.getElementById('customCodeToggle').checked;
+        document.getElementById('couponCodePreview').style.display = isCustom ? 'none' : '';
+        document.getElementById('regenerateCodeBtn').style.display = isCustom ? 'none' : '';
+        document.getElementById('couponCustomCode').style.display = isCustom ? '' : 'none';
+        if (!isCustom) {
+            document.getElementById('couponCustomCode').value = '';
+        }
+    }
+
+    async function handleCreateCoupon(event) {
+        event.preventDefault();
+        const token = getCouponSessionToken();
+        if (!token) return;
+
+        const name = document.getElementById('couponName').value.trim();
+        const maxUsage = parseInt(document.getElementById('couponMaxUsage').value);
+        const isCustom = document.getElementById('customCodeToggle').checked;
+        const customCode = document.getElementById('couponCustomCode').value.trim();
+
+        const body = { name, max_usage: maxUsage };
+        if (isCustom && customCode) {
+            body.code = customCode;
+        }
+
+        const errorEl = document.getElementById('createCouponError');
+        errorEl.style.display = 'none';
+
+        try {
+            const response = await fetch(`/pdn-admin/coupons?session_token=${token}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                errorEl.textContent = data.error || 'שגיאה ביצירת קופון';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            closeModal('createCouponModal');
+            await loadCoupons();
+        } catch (error) {
+            errorEl.textContent = 'שגיאת רשת - נסה שוב';
+            errorEl.style.display = 'block';
+        }
+    }
+
+    // --- Edit Coupon ---
+    function openEditCouponModal(code) {
+        const coupon = couponData.find(c => c.code === code);
+        if (!coupon) return;
+
+        document.getElementById('editCouponCode').value = code;
+        document.getElementById('editCouponCodeDisplay').textContent = code;
+        document.getElementById('editCouponName').value = coupon.name;
+        document.getElementById('editCouponMaxUsage').value = coupon.max_usage;
+        document.getElementById('editCouponError').style.display = 'none';
+        document.getElementById('editCouponModal').style.display = 'flex';
+    }
+
+    async function handleEditCoupon(event) {
+        event.preventDefault();
+        const token = getCouponSessionToken();
+        if (!token) return;
+
+        const code = document.getElementById('editCouponCode').value;
+        const name = document.getElementById('editCouponName').value.trim();
+        const maxUsage = parseInt(document.getElementById('editCouponMaxUsage').value);
+
+        const errorEl = document.getElementById('editCouponError');
+        errorEl.style.display = 'none';
+
+        try {
+            const response = await fetch(`/pdn-admin/coupons/${encodeURIComponent(code)}?session_token=${token}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, max_usage: maxUsage })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                errorEl.textContent = data.error || 'שגיאה בעדכון קופון';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            closeModal('editCouponModal');
+            await loadCoupons();
+        } catch (error) {
+            errorEl.textContent = 'שגיאת רשת - נסה שוב';
+            errorEl.style.display = 'block';
+        }
+    }
+
+    // --- Delete Coupon ---
+    function openDeleteCouponModal(code, name) {
+        deleteCouponCode = code;
+        document.getElementById('deleteCouponMessage').textContent = `האם אתה בטוח שברצונך למחוק את הקופון "${name}" (${code})?`;
+        document.getElementById('deleteCouponModal').style.display = 'flex';
+    }
+
+    async function confirmDeleteCoupon() {
+        const token = getCouponSessionToken();
+        if (!token || !deleteCouponCode) return;
+
+        try {
+            const response = await fetch(`/pdn-admin/coupons/${encodeURIComponent(deleteCouponCode)}?session_token=${token}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                alert(data.error || 'שגיאה במחיקת קופון');
+                return;
+            }
+
+            closeModal('deleteCouponModal');
+            deleteCouponCode = null;
+            await loadCoupons();
+        } catch (error) {
+            alert('שגיאת רשת - נסה שוב');
+        }
+    }
+
+    // --- View Usage ---
+    async function openCouponUsageModal(code) {
+        const token = getCouponSessionToken();
+        if (!token) return;
+
+        const coupon = couponData.find(c => c.code === code);
+        document.getElementById('couponUsageCode').textContent = code;
+        document.getElementById('couponUsageCount').textContent = coupon ? `${coupon.usage_count}/${coupon.max_usage} שימושים` : '';
+        document.getElementById('couponUsageContent').innerHTML = '<div style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-spinner fa-spin" style="font-size: 20px;"></i></div>';
+        document.getElementById('couponUsageModal').style.display = 'flex';
+
+        try {
+            const response = await fetch(`/pdn-admin/coupons/${encodeURIComponent(code)}/usage?session_token=${token}`);
+            if (!response.ok) throw new Error('Failed to load usage');
+            const data = await response.json();
+
+            const usedBy = data.used_by || [];
+            if (usedBy.length === 0) {
+                document.getElementById('couponUsageContent').innerHTML =
+                    '<div style="text-align: center; padding: 32px; color: #94a3b8;"><i class="fas fa-inbox" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>אין שימושים עדיין</div>';
+            } else {
+                document.getElementById('couponUsageContent').innerHTML =
+                    `<div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button onclick="copyCouponUsageList('${code}')" style="padding: 6px 14px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer; font-size: 12px; font-weight: 600; color: #0b2e6b; transition: all 0.2s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-copy"></i> העתק רשימה
+                        </button>
+                        <button onclick="exportCouponUsageCSV('${code}')" style="padding: 6px 14px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer; font-size: 12px; font-weight: 600; color: #059669; transition: all 0.2s;" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='white'">
+                            <i class="fas fa-file-csv"></i> ייצוא CSV
+                        </button>
+                    </div>` +
+                    '<div id="couponUsageList" style="border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">' +
+                    usedBy.map((email, idx) =>
+                        `<div style="padding: 10px 16px; font-size: 13px; color: #374151; border-bottom: ${idx < usedBy.length - 1 ? '1px solid #f1f5f9' : 'none'}; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-envelope" style="color: #94a3b8; font-size: 11px;"></i>
+                            <span style="direction: ltr; flex: 1;">${email}</span>
+                            <button onclick="copyToClipboard('${email}')" title="העתק" style="padding: 4px 8px; border: none; background: transparent; cursor: pointer; color: #94a3b8; font-size: 11px; transition: color 0.2s;" onmouseover="this.style.color='#0b2e6b'" onmouseout="this.style.color='#94a3b8'">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>`
+                    ).join('') + '</div>';
+                // Store for export
+                window._couponUsageEmails = { code, emails: usedBy };
+            }
+        } catch (error) {
+            document.getElementById('couponUsageContent').innerHTML =
+                '<div style="text-align: center; padding: 32px; color: #dc2626;">שגיאה בטעינת נתוני שימוש</div>';
+        }
+    }
+
+    function copyCouponUsageList(code) {
+        const data = window._couponUsageEmails;
+        if (!data || data.code !== code) return;
+        const text = data.emails.join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification(`${data.emails.length} כתובות הועתקו ללוח`, 'success');
+        }).catch(() => {
+            // Fallback for older browsers
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showNotification(`${data.emails.length} כתובות הועתקו ללוח`, 'success');
+        });
+    }
+
+    function exportCouponUsageCSV(code) {
+        const data = window._couponUsageEmails;
+        if (!data || data.code !== code) return;
+        const bom = '\uFEFF';
+        const csv = bom + 'אימייל\n' + data.emails.join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `coupon_${code}_users_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showNotification(`ייצוא ${data.emails.length} כתובות הושלם`, 'success');
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showNotification('הועתק ללוח', 'success');
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showNotification('הועתק ללוח', 'success');
+        });
+    }
+
+    // --- Send Coupon Email ---
+    let sendCouponCode = null;
+
+    function openSendCouponEmailModal(code) {
+        sendCouponCode = code;
+        document.getElementById('sendCouponEmailCode').textContent = code;
+        document.getElementById('couponRecipientEmail').value = '';
+        document.getElementById('sendCouponEmailError').style.display = 'none';
+        document.getElementById('sendCouponEmailSuccess').style.display = 'none';
+        // Reset submit button state
+        const submitBtn = document.querySelector('#sendCouponEmailForm button[type="submit"]');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+        document.getElementById('sendCouponEmailModal').style.display = 'flex';
+        document.getElementById('couponRecipientEmail').focus();
+    }
+
+    async function handleSendCouponEmail(event) {
+        event.preventDefault();
+        const token = getCouponSessionToken();
+        if (!token || !sendCouponCode) return;
+
+        const email = document.getElementById('couponRecipientEmail').value.trim();
+        const errorEl = document.getElementById('sendCouponEmailError');
+        const successEl = document.getElementById('sendCouponEmailSuccess');
+        const submitBtn = event.target.querySelector('button[type="submit"]');
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
+
+        // Disable button to prevent double-click
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> שולח...';
+
+        try {
+            const response = await fetch(`/pdn-admin/coupons/${encodeURIComponent(sendCouponCode)}/send-invite?session_token=${token}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                errorEl.textContent = data.error || 'שגיאה בשליחת אימייל';
+                errorEl.style.display = 'block';
+                // Re-enable on error
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+                return;
+            }
+
+            successEl.textContent = `האימייל נשלח בהצלחה ל-${email}`;
+            successEl.style.display = 'block';
+            document.getElementById('couponRecipientEmail').value = '';
+            // Keep button disabled after success (prevent re-send)
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> נשלח';
+        } catch (error) {
+            errorEl.textContent = 'שגיאת רשת - נסה שוב';
+            errorEl.style.display = 'block';
+            // Re-enable on network error
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> שלח';
+        }
+    }
+</script>
+<script src="{{ url_for('static', filename='js/admin.js') }}?v=265"></script>
+
+<!-- PDN Analysis Modal -->
+<div id="pdnAnalysisModal" role="dialog" aria-modal="true" aria-label="דוח תשובות ומטריצות" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.6);padding:20px;">
+    <div style="position:relative;width:100%;height:100%;background:white;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <iframe id="pdnAnalysisFrame" title="דוח תשובות ומטריצות" style="width:100%;height:100%;border:none;"></iframe>
+    </div>
+</div>
+<script>
+var _previouslyFocusedElement = null;
+
+function openPdnAnalysis() {
+    var modal = document.getElementById('pdnAnalysisModal');
+    var frame = document.getElementById('pdnAnalysisFrame');
+    var token = localStorage.getItem('adminSessionToken') || '';
+    
+    // Get emails from SELECTED (checked) users only
+    var selectedEmails = [];
+    var checked = document.querySelectorAll('#tableBody .row-select-cb:checked');
+    checked.forEach(function(cb) {
+        var email = cb.getAttribute('data-email');
+        if (email) selectedEmails.push(email);
+    });
+    
+    if (selectedEmails.length === 0) {
+        alert('יש לבחור משתמשים תחילה');
+        return;
+    }
+    
+    // Pass emails via postMessage to avoid URL length limits
+    var url = '/pdn-admin/pdn-analysis';
+    frame.src = url;
+    frame.onload = function() {
+        frame.contentWindow.postMessage({ type: 'pdnEmails', emails: selectedEmails.join(',') }, window.location.origin);
+    };
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Focus trap: save previous focus and move focus into modal
+    _previouslyFocusedElement = document.activeElement;
+    frame.focus();
+}
+
+function closePdnAnalysis() {
+    var modal = document.getElementById('pdnAnalysisModal');
+    var frame = document.getElementById('pdnAnalysisFrame');
+    modal.style.display = 'none';
+    frame.src = '';
+    document.body.style.overflow = '';
+
+    // Restore focus to the element that opened the modal
+    if (_previouslyFocusedElement) {
+        _previouslyFocusedElement.focus();
+        _previouslyFocusedElement = null;
+    }
+}
+
+document.getElementById('pdnAnalysisModal').addEventListener('click', function(e) {
+    if (e.target === this) closePdnAnalysis();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var modal = document.getElementById('pdnAnalysisModal');
+        if (modal && modal.style.display === 'block') {
+            closePdnAnalysis();
+        }
+    }
+    // Focus trap: keep Tab within the modal when open
+    if (e.key === 'Tab') {
+        var modal = document.getElementById('pdnAnalysisModal');
+        if (modal && modal.style.display === 'block') {
+            var frame = document.getElementById('pdnAnalysisFrame');
+            e.preventDefault();
+            frame.focus();
+        }
+    }
+});
+
+// Show PDN analysis button only for authorized admin
+(function() {
+    var allowedEmail = 'tomergur@gmail.com';
+    var adminEmail = (localStorage.getItem('adminEmail') || '').toLowerCase();
+    if (adminEmail === allowedEmail) {
+        var btn = document.getElementById('pdnAnalysisBtn');
+        if (btn) btn.style.display = '';
+    }
+})();
+</script>
+</body>
+</html>

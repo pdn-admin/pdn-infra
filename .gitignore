@@ -1,0 +1,23 @@
+saved_results/
+logs/
+secrets/
+.env
+.vscode/
+.idea/
+_pycache_/
+__pycache__/
+flask_session/
+vscode/
+conversation_history/
+venv/
+chroma_db/
+pdn_rag.log
+a7_agent.log
+.hypothesis/
+.coverage
+
+# Kiro IDE settings
+.kiro/
+
+node_modules/
+docs/*.xlsx

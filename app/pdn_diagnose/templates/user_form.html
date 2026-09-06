@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>הכרות ראשונית - PDN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/diagnose-common.css') }}">
+
+</head>
+
+<body class="flex flex-col min-h-screen">
+<div class="flex items-center justify-center flex-1 p-4 sm:p-4 px-2">
+<div class="card p-4 sm:p-8 max-w-4xl w-full mx-auto rounded-2xl space-y-6 text-right">
+    <div class="text-center">
+        <!-- Logo -->
+        <a href="https://www.pdn.co.il" target="_blank" style="display: inline-block; margin-bottom: 8px;">
+            <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN Logo"
+                 style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1.5px solid rgba(201, 169, 110, 0.25);">
+        </a>
+        <h2 class="text-xl md:text-2xl font-extrabold mt-2 mb-6 text-center tracking-tight" style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.02em; line-height: 1.3;">
+            אבחון "קוד המקור" שלך <span style="font-weight: 400; opacity: 0.8;">|</span> מבית PDN</h2>
+        {% if personal_instructions %}
+        <div id="welcomeMessage"
+             class="p-6 rounded-xl border text-gray-800 shadow-sm fade-in text-right"
+             dir="rtl"
+             style="border-color: rgba(30, 27, 75, 0.1); background: linear-gradient(135deg, rgba(30, 27, 75, 0.03), rgba(201, 169, 110, 0.05));">
+            <p class="text-lg mb-4">{{ personal_instructions|replace('\n', '<br>')|safe }}</p>
+        </div>
+        {% endif %}
+        <form id="userForm" class="space-y-6">
+            <input type="hidden" id="email" value="{{ email }}">
+            {% if coupon_code %}
+            <!-- Coupon Code Read-Only Field -->
+            <div class="p-3 rounded-lg" style="background: rgba(201, 169, 110, 0.08); border: 1.5px solid rgba(201, 169, 110, 0.4);">
+                <label class="block text-sm font-medium mb-1 text-right" style="color: #8b6914;">
+                    <i class="fas fa-lock mr-2"></i> קוד קופון
+                </label>
+                <input type="text" id="coupon_code" value="{{ coupon_code }}" readonly
+                       class="w-full px-4 py-2 border rounded-lg text-gray-700 font-mono tracking-wider"
+                       style="background: rgba(201, 169, 110, 0.05); border-color: rgba(201, 169, 110, 0.3); cursor: not-allowed;">
+            </div>
+            {% endif %}
+            <!-- Input Group -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-user mr-2"></i> שם פרטי <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="name" name="name" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input"
+                           placeholder="הכנס שם פרטי"/>
+                </div>
+
+                <div>
+                    <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-user mr-2"></i> שם משפחה <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="last_name" name="last_name" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input"
+                           placeholder="הכנס שם משפחה"/>
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-phone mr-2"></i> טלפון <span class="text-red-500">*</span>
+                    </label>
+                    <input type="tel" id="phone" name="phone" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input"
+                           placeholder="הכנס מספר טלפון"/>
+                </div>
+
+                <div>
+                    <label for="mother_language" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-language mr-2"></i> שפת אם
+                    </label>
+                    <select id="mother_language" name="mother_language"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input">
+                        <option value="">בחר שפת אם</option>
+                        <option value="עברית">עברית</option>
+                        <option value="אנגלית">אנגלית</option>
+                        <option value="ספרדית">ספרדית</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="gender" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-venus-mars mr-2"></i> מגדר
+                    </label>
+                    <select id="gender" name="gender"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input">
+                        <option value="">בחר מגדר</option>
+                        <option value="זכר">זכר</option>
+                        <option value="נקבה">נקבה</option>
+                        <option value="אחר">אחר</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="education" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-graduation-cap mr-2"></i> השכלה
+                    </label>
+                    <select id="education" name="education"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input">
+                        <option value="">בחר רמת השכלה</option>
+                        <option value="תיכון">תיכון</option>
+                        <option value="תואר ראשון">תואר ראשון</option>
+                        <option value="תואר שני">תואר שני</option>
+                        <option value="דוקטורט">דוקטורט</option>
+                        <option value="אחר">אחר</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="job_title" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-briefcase mr-2"></i> תפקיד בעבודה
+                    </label>
+                    <select id="job_title" name="job_title" onchange="handleJobChange()"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input">
+                        <option value="">בחר תפקיד</option>
+                        <option value="מנהל">מנהל</option>
+                        <option value="מפתח תוכנה">מפתח תוכנה</option>
+                        <option value="מעצב גרפי">מעצב גרפי</option>
+                        <option value="מומחה שיווק">מומחה שיווק</option>
+                        <option value="מנתח מידע">מנתח מידע</option>
+                        <option value="יועץ עסקי">יועץ עסקי</option>
+                        <option value="מנהל מוצר">מנהל מוצר</option>
+                        <option value="מנהל משאבי אנוש">מנהל משאבי אנוש</option>
+                        <option value="מהנדס תעשייה וניהול">מהנדס תעשייה וניהול</option>
+                        <option value="אחר">אחר</option>
+                    </select>
+                    <input type="text" id="custom_job_title" name="custom_job_title"
+                           class="w-full mt-2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input hidden"
+                           placeholder="הכנס תפקיד אחר..."/>
+                </div>
+                <div>
+                    <label for="birth_year" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-calendar mr-2"></i> תאריך לידה
+                    </label>
+                    <input type="date" id="birth_year" name="birth_year"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input"
+                           placeholder="בחר תאריך לידה"/>
+                </div>
+                <div>
+                    <label for="referral_source" class="block text-sm font-medium text-gray-700 mb-2 text-right">
+                        <i class="fas fa-user mr-2"></i> שם מפנה
+                    </label>
+                    <input type="text" id="referral_source" name="referral_source"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500/30 focus:border-transparent transition-all duration-300 form-input"
+                           placeholder="הכנס שם מפנה"/>
+                </div>
+            </div>
+
+            <!-- Required fields notice -->
+            <div class="text-center p-4 rounded-lg" style="background: rgba(30, 27, 75, 0.04); border: 1px solid rgba(30, 27, 75, 0.08);">
+                <p class="text-sm" style="color: #5c4a2a;">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    כל השדות המסומנים ב-<span class="text-red-500 font-bold">*</span> הם שדות חובה
+                </p>
+            </div>
+
+            <!-- Consent Section (must agree before proceeding) -->
+            <div class="p-3 rounded-xl text-right" style="background: rgba(30, 27, 75, 0.03); border: 1.5px solid rgba(30, 27, 75, 0.12);">
+                <h3 class="text-base font-bold mb-2" style="color: #1a1a1a;">הסכמה לשימוש במערכת האבחון</h3>
+
+                <div class="space-y-1 text-sm" style="color: #1a1a1a; line-height: 1.6;">
+                    <p>האבחון אינו תחליף לטיפול רפואי, פסיכולוגי ו/או מקצועי. השימוש אישי ובאחריות המשתמש בלבד.</p>
+                    <p>הנתונים שייאספו ישמשו לאבחון אישי, ועשויים לשמש באופן אנונימי לצורכי מחקר, פיתוח ושיפור שיטת PDN.</p>
+                    <p>השימוש במערכת האבחון מהווה הסכמה לתנאים אלו.</p>
+                </div>
+
+                <label class="flex items-center gap-3 mt-3 cursor-pointer select-none">
+                    <input type="checkbox" id="consentCheckbox" onchange="toggleSubmitButton()"
+                           class="w-5 h-5 rounded border-2 border-gray-400 accent-amber-600 cursor-pointer" style="accent-color: #8b6914;">
+                    <span class="text-sm font-semibold" style="color: #1a1a1a;">קראתי ואני מסכים/ה</span>
+                </label>
+
+                <p class="text-xs mt-2" style="color: #555;">© 2000 מרכז PDN | כל הזכויות שמורות | מוגן בזכויות יוצרים ופטנטים בינלאומיים.</p>
+            </div>
+
+            <button
+                    type="submit"
+                    id="submitBtn"
+                    disabled
+                    class="w-full py-3 px-6 font-semibold rounded-lg focus:outline-none focus:ring-4 transition-all duration-300"
+                    style="background: linear-gradient(135deg, #8b6914, #c9a96e, #e6b020); color: white; opacity: 0.5; cursor: not-allowed; box-shadow: 0 4px 12px rgba(139, 105, 20, 0.3);"
+            >
+                תחילת האבחון
+            </button>
+        </form>
+    </div>
+
+    {% include 'partials/footer.html' %}
+</div>
+</div>
+</div>
+
+<div id="toastContainer" style="position:fixed;bottom:24px;left:24px;z-index:9999;display:flex;flex-direction:column;gap:8px;"></div>
+
+<script>
+    function showToast(message, type) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const bg = type === 'error' ? '#dc2626' : type === 'success' ? '#059669' : '#d97706';
+        toast.style.cssText = 'padding:12px 20px;border-radius:10px;color:white;font-size:14px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,0.15);opacity:0;transform:translateX(-20px);transition:all 0.3s ease;background:' + bg;
+        toast.textContent = message;
+        container.appendChild(toast);
+        requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(-20px)'; setTimeout(() => toast.remove(), 300); }, 4000);
+    }
+
+    function handleJobChange() {
+        const jobSelect = document.getElementById('job_title');
+        const customInput = document.getElementById('custom_job_title');
+        if (jobSelect.value === 'אחר') {
+            customInput.classList.remove('hidden');
+            customInput.required = true;
+        } else {
+            customInput.classList.add('hidden');
+            customInput.required = false;
+            customInput.value = '';
+        }
+    }
+
+    function toggleSubmitButton() {
+        const checkbox = document.getElementById('consentCheckbox');
+        const btn = document.getElementById('submitBtn');
+        if (checkbox.checked) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        } else {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+        }
+    }
+
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Check consent checkbox
+        const consentCheckbox = document.getElementById('consentCheckbox');
+        if (!consentCheckbox.checked) {
+            showToast('יש לאשר את ההסכמה לשימוש במערכת לפני המשך', 'error');
+            return;
+        }
+
+        // Validate all required fields
+        const requiredFields = [
+            'name', 'last_name', 'phone'];
+
+        let isValid = true;
+        let missingFields = [];
+
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                isValid = false;
+                missingFields.push(fieldId);
+                field.classList.add('border-red-500');
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+
+        // Check custom job title if "אחר" is selected
+        const jobSelect = document.getElementById('job_title');
+        if (jobSelect.value === 'אחר') {
+            const customJob = document.getElementById('custom_job_title');
+            if (!customJob.value.trim()) {
+                isValid = false;
+                customJob.classList.add('border-red-500');
+                missingFields.push('custom_job_title');
+            } else {
+                customJob.classList.remove('border-red-500');
+            }
+        }
+
+        if (!isValid) {
+            showToast('אנא מלא את כל השדות המסומנים ב-*', 'error');
+            return;
+        }
+
+        const formData = {
+            first_name: document.getElementById('name').value.trim(),
+            last_name: document.getElementById('last_name').value.trim(),
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value.trim(),
+            birth_year: document.getElementById('birth_year').value,
+            mother_language: document.getElementById('mother_language').value,
+            gender: document.getElementById('gender').value,
+            education: document.getElementById('education').value,
+            job_title: jobSelect.value === 'אחר'
+                ? document.getElementById('custom_job_title').value.trim()
+                : jobSelect.value,
+            referral_source: document.getElementById('referral_source').value.trim()
+        };
+
+        try {
+            const response = await fetch('/pdn-diagnose/user_info', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                window.location.href = '/pdn-diagnose/chat';
+            } else {
+                const errorData = await response.json();
+                showToast('שגיאה בשמירת הפרטים: ' + (errorData.detail || 'אנא נסה שוב'), 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('שגיאה בשמירת הפרטים, אנא נסה שוב', 'error');
+        }
+    });
+
+    // Add visual feedback for required fields
+    document.querySelectorAll('input[required], select[required]').forEach(field => {
+        field.addEventListener('blur', function () {
+            if (!this.value.trim()) {
+                this.classList.add('border-red-500');
+            } else {
+                this.classList.remove('border-red-500');
+            }
+        });
+    });
+
+</script>
+</body>
+</html>

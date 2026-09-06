@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>בינת קוד המקור - שיחה עם הנווט הפנימי</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-chat.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+</head>
+<body>
+
+<!-- Floating Action Menu -->
+<div class="fab-menu" id="fabMenu">
+    <button class="fab-toggle" id="fabToggle" onclick="toggleFabMenu()" title="תפריט" aria-label="תפריט פעולות">
+        <img src="{{ url_for('static', filename='images/pdn_logo.png') }}"
+             alt="PDN" id="fabIcon"
+             style="width:100%;height:100%;border-radius:50%;object-fit:cover;"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='inline';">
+        <i class="fas fa-ellipsis-v" style="display:none;"></i>
+    </button>
+    <div class="fab-dropdown" id="fabDropdown">
+        <button class="fab-item highlight" onclick="show21PlanModal(); closeFabMenu();">
+            <i class="fas fa-calendar-check"></i> אתגר 21 יום
+        </button>
+        <button class="fab-item" onclick="showDailyTrainingModal(); closeFabMenu();">
+            <i class="fas fa-dumbbell"></i> אימון יומי
+        </button>
+        <button class="fab-item" onclick="exportAsText(); closeFabMenu();">
+            <i class="fas fa-download"></i> ייצוא שיחה
+        </button>
+        <button class="fab-item" onclick="showBookmarks(); closeFabMenu();">
+            <i class="fas fa-bookmark"></i> הודעות שמורות
+        </button>
+        <button class="fab-item" onclick="toggleChatTheme(); closeFabMenu();">
+            <i class="fas fa-moon" id="fabThemeIcon"></i> <span id="fabThemeText">מצב כהה</span>
+        </button>
+        <button class="fab-item danger" onclick="handleThankYouClick(); closeFabMenu();">
+            <i class="fas fa-sign-out-alt"></i> סיים שיחה
+        </button>
+    </div>
+</div>
+
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+  <div class="chat-wrapper">
+    <div class="chat-container" id="chatContainer">
+        <!-- Chat messages will be inserted here -->
+    </div>
+
+    <!-- Scroll to bottom button -->
+    <button id="scrollToBottomBtn" class="scroll-to-bottom-btn hidden" onclick="scrollToBottom(true)" aria-label="גלול למטה">
+        <i class="fas fa-chevron-down"></i> הודעות חדשות
+    </button>
+
+    <div class="chat-divider"></div>
+
+    <!-- Input area -->
+    <div class="input-area">
+        <textarea id="userInput"
+               placeholder="כתוב לי עכשיו... (Shift+Enter לשורה חדשה)"
+               lang="he-IL"
+               onkeydown="handleKeyPress(event)"
+               oninput="autoResizeTextarea(this)"
+               rows="3"
+               aria-label="הודעת טקסט"></textarea>
+
+        <div class="input-buttons">
+            <button class="send-button" onclick="toggleSendStop()" id="sendBtn" aria-label="שלח הודעה">
+                <i class="fas fa-paper-plane"></i> שלח
+            </button>
+            
+            <button class="action-button" onclick="toggleMicrophone()" title="הקלטה קולית" id="micBtn"
+                    aria-label="הקלטה קולית">
+                <i class="fas fa-microphone"></i> <span id="micBtnText">הקלטה</span>
+            </button>
+
+            <button class="action-button challenge-btn" onclick="show21PlanModal()" title="אתגר 21 יום" id="challengeBtn"
+                    aria-label="אתגר 21 יום">
+                <i class="fas fa-calendar-check"></i> <span>21 יום</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="chat-divider"></div>
+
+    <!-- Footer - minimal -->
+    <div style="padding: 12px 24px; text-align: center;">
+        <p style="font-size: 11px; color: #8a8279; margin: 0;">&copy; 2025 PDN Center</p>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div class="confirmation-modal" id="confirmationModal">
+    <div class="confirmation-content">
+        <h3 class="confirmation-title">סיים שיחה</h3>
+        <p class="confirmation-message">האם אתה בטוח שברצונך לסיים את השיחה ולחזור לדף ההתחברות?</p>
+        <p class="confirmation-message">שים לב: השיחה לא תישמר. אם ברצונך לשמור את תוכן השיחה, אנא ייצא אותה לפני
+            היציאה.</p>
+        <div class="confirmation-buttons">
+            <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
+                <i class="fas fa-times"></i>
+                ביטול
+            </button>
+            <button class="confirmation-btn confirm" onclick="confirmLogout()">
+                <i class="fas fa-check"></i>
+                אישור
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 21-Day Plan Modal -->
+<div class="plan-modal" id="planModal">
+
+    <!-- Loading animation shown while building the plan -->
+    <div class="plan-loading-screen" id="planLoadingScreen" style="display:none;">
+        <div class="pdn-loading-card">
+            <div class="pdn-loading-logo">
+                <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN" onerror="this.style.display='none'">
+            </div>
+            <div class="pdn-loading-code" id="loadingCode">E5</div>
+            <div class="pdn-loading-name" id="loadingCodeName">קבלה והנהגה</div>
+            <div class="pdn-loading-element" id="loadingElement">Empower - אדנות ומנהיגות</div>
+
+            <div class="pdn-engines-row" id="loadingEngines">
+                <div class="pdn-engine-pill dom">
+                    <span class="engine-pct">50%</span>
+                    <span class="engine-name" id="eng1">E5</span>
+                    <span class="engine-role">דומיננטי</span>
+                </div>
+                <div class="pdn-engine-pill stab">
+                    <span class="engine-pct">30%</span>
+                    <span class="engine-name" id="eng2">A11</span>
+                    <span class="engine-role">מייצב</span>
+                </div>
+                <div class="pdn-engine-pill trans">
+                    <span class="engine-pct">20%</span>
+                    <span class="engine-name" id="eng3">P6</span>
+                    <span class="engine-role">מתמיר</span>
+                </div>
+            </div>
+
+            <div class="pdn-loading-progress">
+                <div class="pdn-loading-bar"></div>
+            </div>
+            <div class="pdn-loading-msg" id="loadingMsg">בונה תוכנית מותאמת אישית...</div>
+            <div class="pdn-strengths-ticker" id="loadingStrength"></div>
+        </div>
+    </div>
+
+    <div class="plan-content" id="planContent">
+        <div class="plan-header">
+            <div class="plan-title-container">
+                <div class="plan-title-main">
+                    <h3 class="plan-title">אתגר 21 יום</h3>
+                    <button class="plan-auto-fill-btn" onclick="autoFillPlanForm()" title="">
+                        <i class="fas fa-eagle"></i>
+                    </button>
+                </div>
+                <div class="plan-subtitle">להשגת מטרה</div>
+                <div class="plan-tagline">
+                    <span class="plan-tagline-item">מפחד לעוצמה</span>
+                    <span class="plan-tagline-separator">|</span>
+                    <span class="plan-tagline-item">מתקיעות לניווט</span>
+                    <span class="plan-tagline-separator">|</span>
+                    <span class="plan-tagline-item">מחלום להגשמה</span>
+                </div>
+                <div class="plan-description">
+                    לא משנה באיזה תחום ברצונך להגשים - קריירה, משפחה, זוגיות, יחסים, ביטחון עצמי.
+                    <strong>המפתח הוא להכיר את "קוד המקור" האישי שלך</strong> וכך תוכל לנווט את חייך בהצלחה.
+                </div>
+            </div>
+            <button class="plan-close" onclick="hidePlanModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="plan-body">
+            <p class="plan-description">
+                כדי לבנות לך תוכנית מותאמת אישית, אנא ספר לנו בקצרה:
+            </p>
+
+            <form id="planForm" onsubmit="submitPlanRequest(event)">
+                <div class="form-group">
+                    <label for="planGoal" class="form-label">
+                        <i class="fas fa-target"></i>
+                        מה אתה רוצה להשיג בתוכנית הזו?
+                    </label>
+                    <textarea
+                        id="planGoal"
+                        name="goal"
+                        class="form-textarea"
+                        placeholder="תאר את המטרה שלך באתגר 21 יום (למשל: שיפור ביטחון עצמי, פיתוח קריירה, יצירת הרגלים חדשים)"
+                        required
+                        rows="4"
+                        onkeydown="handlePlanFormKeyPress(event)"
+                    ></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="plan-btn cancel" onclick="hidePlanModal()">
+                        <i class="fas fa-times"></i>
+                        ביטול
+                    </button>
+                    <button type="submit" class="plan-btn submit" id="submitPlanBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        מתחילים את אתגר 21 הימים!
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Training Modal -->
+<div class="plan-modal" id="dailyTrainingModal">
+
+    <!-- Loading animation -->
+    <div class="plan-loading-screen" id="dailyLoadingScreen" style="display:none;">
+        <div class="pdn-loading-card">
+            <div class="pdn-loading-logo">
+                <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN" onerror="this.style.display='none'">
+            </div>
+            <div class="pdn-loading-code" id="dailyLoadingCode">E5</div>
+            <div class="pdn-loading-name" id="dailyLoadingCodeName">קבלה והנהגה</div>
+            <div class="pdn-loading-element" id="dailyLoadingElement">Empower - אדנות ומנהיגות</div>
+            <div class="pdn-engines-row">
+                <div class="pdn-engine-pill dom">
+                    <span class="engine-pct">50%</span>
+                    <span class="engine-name" id="dailyEng1">E5</span>
+                    <span class="engine-role">דומיננטי</span>
+                </div>
+                <div class="pdn-engine-pill stab">
+                    <span class="engine-pct">30%</span>
+                    <span class="engine-name" id="dailyEng2">A11</span>
+                    <span class="engine-role">מייצב</span>
+                </div>
+                <div class="pdn-engine-pill trans">
+                    <span class="engine-pct">20%</span>
+                    <span class="engine-name" id="dailyEng3">P6</span>
+                    <span class="engine-role">מתמיר</span>
+                </div>
+            </div>
+            <div class="pdn-loading-progress">
+                <div class="pdn-loading-bar"></div>
+            </div>
+            <div class="pdn-loading-msg" id="dailyLoadingMsg">מכין אימון יומי מותאם...</div>
+            <div class="pdn-strengths-ticker" id="dailyLoadingStrength"></div>
+        </div>
+    </div>
+
+    <div class="plan-content" id="dailyTrainingContent">
+        <div class="plan-header">
+            <div class="plan-title-container">
+                <div class="plan-title-main">
+                    <h3 class="plan-title">אימון יומי</h3>
+                    <button class="plan-auto-fill-btn" onclick="autoFillDailyTrainingForm()" title="">
+                        <i class="fas fa-dumbbell"></i>
+                    </button>
+                </div>
+                <div class="plan-subtitle">תרגול יומי מותאם אישית</div>
+                <div class="plan-description">
+                    כל יום הוא הזדמנות לצמיחה. <strong>האימון היומי</strong> מותאם לקוד המקור שלך ומסייע לך להתקדם בצעדים קטנים אך משמעותיים.
+                </div>
+            </div>
+            <button class="plan-close" onclick="hideDailyTrainingModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="plan-body">
+
+            <form id="dailyTrainingForm" onsubmit="submitDailyTrainingRequest(event)">
+                <div class="form-group">
+                    <label for="trainingTask" class="form-label">
+                        <i class="fas fa-tasks"></i>
+                        מה המשימה היומית שלך?
+                    </label>
+                    <textarea
+                        id="trainingTask"
+                        name="task"
+                        class="form-textarea"
+                        placeholder="כתוב כאן את המשימה היומית שלך "
+                        required
+                        rows="4"
+                        onkeydown="handleDailyTrainingFormKeyPress(event)"
+                    ></textarea>
+                </div>
+
+
+                <div class="form-actions">
+                    <button type="button" class="plan-btn cancel" onclick="hideDailyTrainingModal()">
+                        <i class="fas fa-times"></i>
+                        ביטול
+                    </button>
+                    <button type="submit" class="plan-btn submit" id="submitDailyTrainingBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        שלח
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Pass Jinja2 template variables to the external JS file
+    const USER_NAME = "{{ user_name }}";
+    const USER_ID = "{{ user_id }}";
+    const PDN_CODE = "{{ pdn_code }}";
+</script>
+<script src="{{ url_for('static', filename='js/binat-chat.js') }}"></script>
+
+</body>
+</html>

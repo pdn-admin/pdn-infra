@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עדכונים למערכת - יוני 2026</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc; color: #1e293b; line-height: 1.8; padding: 32px 20px;
+        }
+        .container { max-width: 700px; margin: 0 auto; }
+        .header { margin-bottom: 32px; }
+        .header h1 { font-size: 1.6rem; font-weight: 800; color: #0b2e6b; }
+        .header p { color: #64748b; font-size: 0.9rem; margin-top: 4px; }
+        .section { margin-bottom: 28px; }
+        .section-title {
+            font-size: 1.1rem; font-weight: 700; color: #0b2e6b;
+            margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0;
+        }
+        .item {
+            background: white; border-radius: 10px; padding: 16px; margin: 10px 0;
+            border: 1px solid #e2e8f0;
+        }
+        .item-title { font-weight: 700; color: #334155; margin-bottom: 4px; }
+        .item p { font-size: 0.88rem; color: #475569; }
+        .tag {
+            display: inline-block; padding: 2px 8px; border-radius: 6px;
+            font-size: 0.7rem; font-weight: 600; margin-left: 8px;
+        }
+        .tag-new { background: #dcfce7; color: #166534; }
+        .tag-fix { background: #dbeafe; color: #1d4ed8; }
+        .tag-remove { background: #fef3c7; color: #92400e; }
+        .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e2e8f0; color: #94a3b8; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>עדכונים למערכת הניהול</h1>
+            <p>פנינה, הנה סיכום השינויים האחרונים. תומר, יוני 2026.</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">תור עדיפויות - הרשימה ממוינת לפי דחיפות</div>
+            <div class="item">
+                <div class="item-title">מיון אוטומטי לפי דחיפות <span class="tag tag-new">חדש</span></div>
+                <p>הטבלה ממוינת עכשיו לפי דחיפות ולא לפי תאריך. למעלה יופיעו המקרים שדורשים את תשומת הלב שלך, למטה מקרים שסגורים.</p>
+                <p>כפתור "דחיפות / תאריך" בסרגל הכלים מאפשר לעבור בין המיונים.</p>
+            </div>
+            <div class="item">
+                <div class="item-title">המלצה מובנית לכל משתמש <span class="tag tag-new">חדש</span></div>
+                <p>מתחת לכל משתמש שדורש תשומת לב מופיעה שורה צבעונית עם המלצה קצרה. למשל:</p>
+                <p style="background:#fffbeb;padding:6px 10px;border-radius:6px;font-size:0.82rem;color:#92400e;margin-top:6px;">"ככל הנראה A3 - פער אנרגיה קטן (F), בדוק קצב דיבור"</p>
+                <p style="margin-top:6px;">אם שלב 5 שינה את התוצאה, תראי גם את ההשוואה ישירות:</p>
+                <p style="background:#fff7ed;padding:6px 10px;border-radius:6px;font-size:0.82rem;color:#c2410c;margin-top:6px;">"שלב 5 הפך: A &rarr; E &mdash; שקול שיחה"</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">הקלטה קולית בתוך הפופאפ</div>
+            <div class="item">
+                <div class="item-title">נגן קול אוטומטי <span class="tag tag-new">חדש</span></div>
+                <p>כשלוחצים על סטטוס של משתמש (תקין/לבדיקה), הפופאפ שנפתח מציג עכשיו גם נגן של ההקלטה הקולית. אין צורך ללחוץ על כפתורים נוספים או לנווט למקום אחר.</p>
+            </div>
+            <div class="item">
+                <div class="item-title">כפתור "פירוט מלא" <span class="tag tag-new">חדש</span></div>
+                <p>בתוך הפופאפ יש עכשיו כפתור "פירוט מלא" שפותח את הדוח המפורט עם כל שלבי החישוב (שלב 1 עד 5).</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">שינויים בפופאפ הניקוד</div>
+            <div class="item">
+                <div class="item-title">הוסר טקסט מיותר <span class="tag tag-remove">הוסר</span></div>
+                <p>הורדתי את המשפטים שהופיעו מתחת לאחוז הביטחון ומתחת לקוד (כמו "הפער בין התכונות קטן..."). הפופאפ עכשיו נקי יותר.</p>
+            </div>
+            <div class="item">
+                <div class="item-title">צבע האחוז <span class="tag tag-fix">שונה</span></div>
+                <p>מעל 50% - ירוק. בין 10-49% - אפור רגיל. מתחת ל-10% בלבד - אדום.</p>
+            </div>
+            <div class="item">
+                <div class="item-title">הוסר כפתור "שלח במייל" <span class="tag tag-remove">הוסר</span></div>
+                <p>הכפתור שהיה בחלון הפירוט המלא הוסר - לא היה בשימוש.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">סינון סטטוס</div>
+            <div class="item">
+                <div class="item-title">שמות חדשים לפילטר <span class="tag tag-fix">שונה</span></div>
+                <p>הפילטר "סטטוס" השתנה מ"נדרש אימות / ללא קוד" ל-<strong>תקין / לבדיקה</strong> - פשוט יותר.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">חשב מחדש - שיפור</div>
+            <div class="item">
+                <div class="item-title">הקוד הקודם מוצג <span class="tag tag-new">חדש</span></div>
+                <p>כשלוחצים "חשב מחדש" והקוד משתנה, הפופאפ מראה את הקוד הישן לצד החדש. למשל: <span style="text-decoration:line-through;color:#94a3b8;">A3</span> &rarr; <strong>E9</strong></p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">הודעות מייל</div>
+            <div class="item">
+                <div class="item-title">הוסר מייל בהרשמה <span class="tag tag-remove">הוסר</span></div>
+                <p>המייל שנשלח כל פעם שמשתמש חדש נרשם לשאלון הוסר. עכשיו מגיע מייל רק כשמשתמש <strong>מסיים</strong> את השאלון.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">מדריכים חדשים</div>
+            <div class="item">
+                <div class="item-title">מדריך בדיקה מהיר <span class="tag tag-new">חדש</span></div>
+                <p>יצרתי מדריך מעשי שנבנה בשבילך - כולל תהליך עבודה, מתי לאשר בלי שיחה, שאלות אבחנה מהירות לשיחה, וזיהוי תכונה לפי קול. נשלח בנפרד.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>אם יש שאלות או משהו לא ברור - תרגישי חופשי לשלוח הודעה.</p>
+            <p>תומר</p>
+        </div>
+    </div>
+</body>
+</html>

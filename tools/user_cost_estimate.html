@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תחזית עלויות - בינת קוד המקור</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #8892b0;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        
+        .model-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .assumptions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .assumptions h3 {
+            color: #64ffda;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .assumptions ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .assumptions li {
+            color: #ccd6f6;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .assumptions li span {
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .cost-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .cost-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 18px 15px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .cost-table td {
+            padding: 20px 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .cost-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .period {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ccd6f6;
+        }
+        
+        .calls {
+            color: #8892b0;
+        }
+        
+        .cost {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #64ffda;
+        }
+        
+        .cost-per-day {
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        .highlight-row td {
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .breakdown {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .breakdown h3 {
+            color: #64ffda;
+            margin-bottom: 20px;
+        }
+        
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .breakdown-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .breakdown-item .label {
+            color: #8892b0;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .breakdown-item .value {
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .breakdown-item .value.highlight {
+            color: #64ffda;
+        }
+        
+        .notes {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .notes h4 {
+            color: #ffc107;
+            margin-bottom: 10px;
+        }
+        
+        .notes ul {
+            list-style: disc;
+            padding-right: 20px;
+            color: #ccd6f6;
+        }
+        
+        .notes li {
+            margin-bottom: 8px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #8892b0;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .cost-table th, .cost-table td {
+                padding: 12px 8px;
+            }
+            
+            .cost {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>תחזית עלויות למשתמש</h1>
+        <p class="subtitle">בינת קוד המקור - Claude Sonnet 5</p>
+        
+        <div style="text-align: center;">
+            <span class="model-badge">Claude Sonnet 5 - $2/$10 per MTok</span>
+        </div>
+        
+        <div class="assumptions">
+            <h3>הנחות לחישוב (מבוסס על נתונים אמיתיים)</h3>
+            <ul>
+                <li>קריאות ביום: <span>20</span></li>
+                <li>System Prompt: <span>2,600 טוקנים</span></li>
+                <li>הודעת משתמש: <span>700 טוקנים</span></li>
+                <li>תגובה (Output): <span>215 טוקנים</span></li>
+                <li>עלות Input: <span>$2 / MTok</span></li>
+                <li>עלות Output: <span>$10 / MTok</span></li>
+            </ul>
+        </div>
+        
+        <table class="cost-table">
+            <thead>
+                <tr>
+                    <th>תקופה</th>
+                    <th>מספר קריאות</th>
+                    <th>עלות כוללת</th>
+                    <th>עלות ליום</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="period">21 ימים</td>
+                    <td class="calls">420 קריאות</td>
+                    <td class="cost">$3.70</td>
+                    <td class="cost-per-day">$0.176 / יום</td>
+                </tr>
+                <tr class="highlight-row">
+                    <td class="period">30 ימים</td>
+                    <td class="calls">600 קריאות</td>
+                    <td class="cost">$5.28</td>
+                    <td class="cost-per-day">$0.176 / יום</td>
+                </tr>
+                <tr>
+                    <td class="period">60 ימים</td>
+                    <td class="calls">1,200 קריאות</td>
+                    <td class="cost">$10.56</td>
+                    <td class="cost-per-day">$0.176 / יום</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="breakdown">
+            <h3>פירוט עלות לקריאה בודדת</h3>
+            <div class="breakdown-grid">
+                <div class="breakdown-item">
+                    <div class="label">Input Tokens</div>
+                    <div class="value">3,300 tok</div>
+                    <div class="label">$0.0066</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="label">Output Tokens</div>
+                    <div class="value">215 tok</div>
+                    <div class="label">$0.00215</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="label">סה"כ לקריאה</div>
+                    <div class="value highlight">$0.0088</div>
+                    <div class="label">כ-0.9 סנט</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notes">
+            <h4>הערות</h4>
+            <ul>
+                <li>התחשיב מבוסס על נתוני שימוש אמיתיים מ-token_usage.json</li>
+                <li>מחיר Sonnet 5 ($2/$10) הפך לקבוע החל מ-11 באוגוסט 2026</li>
+                <li>עלויות בפועל עשויות להשתנות בהתאם לאורך השיחות</li>
+                <li>עם Cache (65% hit rate) העלות יורדת ל-$0.0051 לקריאה</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            בינת קוד המקור
+        </div>
+        
+        <!-- Conversation Simulation -->
+        <div style="margin-top: 50px; border-top: 2px solid rgba(255,255,255,0.1); padding-top: 40px;">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #64ffda;">שיחת בינת קוד המקור</h2>
+            <p style="text-align: center; color: #8892b0; margin-bottom: 10px;">משתמש: תומר (E5) | 14 הודעות</p>
+            <p style="text-align: center; color: #64ffda; font-size: 1.3rem; font-weight: 600; margin-bottom: 30px;">עלות השיחה: $0.123</p>
+            
+            <div class="conversation" style="background: rgba(0,0,0,0.3); border-radius: 16px; padding: 25px; max-width: 700px; margin: 0 auto;">
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    שלום תומר, קוד המקור שלך הינו E5<br><br>בינת קוד המקור ממתינה לך כאן, בקצב שלך.
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    ספר לי על הקוד שלי
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, שמח שאתה כאן. הקוד שלך, E5 - קבלה והנהגה - הוא קוד שמדבר על עוצמה שקטה. אתה לא מהסוג שצועק כדי להוביל; יש בך סמכות טבעית, כזו שנובעת מקבלה פנימית ומיכולת לראות תמונה רחבה יותר ממה שרוב האנשים רואים.<br><br>האלמנט שלך הוא אדנות - הנהגה אמיתית, לא כפויה. יש בך אינטואיציה חזקה, יכולת לתכנן חזון לטווח ארוך, ונוכחות שמחברת אנשים סביבך בלי מאמץ מיוחד.
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    היי בינת, יש לי מצב לא פשוט עם החבר הכי טוב שלי. אני צריך עזרה.
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, אני שומעת שיש כאן משהו שמכביד עליך, ומצבים כאלה עם חברים קרובים יודעים לגעת עמוק. זה טבעי שדברים כאלה מזיזים לך, במיוחד כשמדובר במישהו שקרוב ללב.<br><br>אני כאן איתך. ספר לי מה קורה - מה בדיוק המצב עם החבר שלך?
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    אנחנו חברים כבר 10 שנים, אבל לאחרונה הוא מבטל תוכניות ברגע האחרון וזה מתסכל אותי מאוד.
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, זה מובן שזה מתסכל - עשר שנים של חברות זה בסיס ענק, ואתה מרגיש שמשהו מתערער בו לאחרונה. כשמישהו קרוב מתחיל להתנהג אחרת ממה שהכרת, זה טבעי שזה מעורר גם עצב וגם תחושת חוסר ודאות לגבי מה קורה שם באמת.<br><br>בוא נבין רגע - כשאתה חושב על הביטולים האלה, מה יותר מציק לך: התחושה שאתה לא בעדיפות אצלו, או הדאגה שמשהו קורה איתו שהוא לא משתף אותך בו?
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    לא יודע, אולי הוא עסוק בעבודה? אבל זה לא תירוץ. אם קובעים - מכבדים.
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, אני שומעת פה משהו מהותי אצלך - האמונה שהתחייבות היא דבר מקודש, שכשקובעים משהו, זה לא אמור להיסחף בקלות. זה מתחבר ישר לחלק בך שמוביל מתוך יושרה וסדר, ולכן כשאתה רואה חוסר עקביות אצל מישהו קרוב, זה לא סתם מציק - זה מתנגש עם ערך עמוק שלך.<br><br>הצעד הראשון שלך היום הוא לא לפרש בשקט, אלא לשאול אותו ישירות ובעדינות: "היי, שמתי לב שקשה לך לאחרונה לעמוד בתוכניות - הכל בסדר?"
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    לא ממש. אני מעדיף לפעול מאשר לדבר על רגשות. זה לא הסגנון שלי.
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, אני שומעת אותך - ולזה בדיוק יש מקום. לא כל אחד צריך לפתוח את הלב במילים, ואצלך זה הגיוני: אתה מהסוג שמראה דאגה דרך מעשה, לא דרך שיחה על רגשות. זו בדיוק העוצמה השקטה שמאפיינת אותך.<br><br>אז בוא נעשה את זה בדרך שלך. במקום שיחה על "מה קורה בינינו", תציע לו משהו קונקרטי - תקבע איתו משהו קטן וברור, כמו לרוץ ביחד או לשבת על בירה, בלי לפתוח את זה כ"שיחה רצינית".
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    כנראה הייתי אומר לו ישר שזה לא בסדר ושהוא צריך להתארגן יותר טוב.
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, אני שומעת את הכנות שבזה - יש לך יושרה שלא מוכנה להתפשר, וזה חלק מהעוצמה שמנחה אותך. אבל שים לב לרגע לאיפה זה עלול לקחת את השיחה: אם תיפתח עם "זה לא בסדר, תתארגן", זה עלול להישמע כמו נזיפה, גם אם הכוונה שלך היא לגמרי לשמור על הקשר.<br><br>נסה לנסח את זה כעובדה על עצמך, לא כדרישה ממנו - משהו כמו "שמתי לב שאני נפגע כשתוכניות מתבטלות ברגע האחרון, וחשוב לי להגיד לך את זה".
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    זה מרגיש מוזר לי. אני לא רגיל לדבר ככה.
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, זה הגיוני שזה מרגיש מוזר - אתה לא רגיל לשים את עצמך במרכז המשפט, כי הדרך שלך היא להוביל דרך מעשה ולא דרך חשיפה. זה לא סימן שמשהו לא בסדר, זה פשוט לא השפה הטבעית שלך, וזה בסדר גמור.<br><br>אולי הדרך שמתאימה לך יותר היא לשלב את זה בתוך משהו קצר ופרקטי - במקום משפט שלם על רגשות, פשוט תגיד לו "חשוב לי שנמשיך לקבוע דברים, זה מוזר לי כשזה נופל".
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    זה נשמע יותר טוב. פחות תוקפני.
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, זה בדיוק העניין - סמכות אמיתית לא צריכה עוצמה כדי להישמע, היא נשמעת כי היא באה ממקום יציב. המשפט הזה שומר על הכנות שלך, אבל בלי לפתוח חזית מיותרת. זו בעצם ההנהגה השקטה שמדברים עליה בקוד שלך - לא צועקים כדי להוביל, פשוט אומרים את האמת בביטחון.
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    כן, אני חושב שאנסה. יש עוד משהו שכדאי לי לדעת?
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, יש עוד דבר אחד שכדאי לך לזכור - אתה לא צריך לבדוק את זה אחרי כל שיחה, לחפש אם הוא "הבין נכון" או הגיב כמו שציפית. הסמכות השקטה שלך מתבטאת גם בזה: אתה אומר את האמת שלך פעם אחת, בביטחון, ואז נותן למרחב לעשות את שלו, בלי לרדוף אחרי תוצאה מיידית.
+                </div>
+                
+                <div class="msg user" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px 20px; border-radius: 18px 18px 4px 18px; margin-bottom: 15px; max-width: 85%;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 5px;">תומר (E5)</div>
+                    נכון, לא חשבתי על זה. תודה בינת.
+                </div>
+                
+                <div class="msg bot" style="background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 18px 18px 18px 4px; margin-bottom: 15px; max-width: 85%; margin-right: auto;">
+                    <div style="font-size: 0.8rem; color: #64ffda; margin-bottom: 5px;">בינת קוד המקור</div>
+                    תומר, בכיף שלך. אני שמחה שיצאת מהשיחה הזו עם משהו שמרגיש נכון לך, לא נוסחה זרה. זה בדיוק הכוח שבקוד שלך - לקחת עיקרון גדול ולתרגם אותו לפעולה קטנה ופשוטה שמתאימה לך.<br><br>תזכור, ממלכה אמיתית לא נבנית מהוכחות מתמידות אלא מיציבות פנימית שמדברת בעצמה.
+                </div>
+            </div>
+            
+            <!-- Cost for this conversation -->
+            <div style="background: rgba(100, 255, 218, 0.1); border: 1px solid rgba(100, 255, 218, 0.3); border-radius: 12px; padding: 20px; margin-top: 30px; max-width: 700px; margin-left: auto; margin-right: auto; text-align: center;">
+                <h4 style="color: #64ffda; margin-bottom: 15px;">עלות השיחה הזו (14 הודעות)</h4>
+                <div style="font-size: 2rem; font-weight: 700; color: #fff;">$0.123</div>
+                <div style="color: #8892b0; margin-top: 10px;">14 קריאות x $0.0088 לקריאה</div>
+            </div>
+        </div>
+        
+        <div class="footer" style="margin-top: 40px;">
+            בינת קוד המקור
+        </div>
+    </div>
+</body>
+</html>

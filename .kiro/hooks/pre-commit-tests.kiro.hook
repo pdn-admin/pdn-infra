@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Run Tests Before Commit",
+  "description": "Runs the full test suite before every commit to verify nothing is broken. If tests fail, reminds the agent to fix them before committing.",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      ".*git.*commit.*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before committing, run the test suite: `./venv/bin/python -m pytest tests/test_pdn_agent.py tests/test_pdn_agent_history.py tests/test_property_base_agent.py tests/test_property_relationship_agent.py tests/test_property_relationship_routes.py tests/test_relationship_routes.py tests/test_relationship_agent.py tests/test_property_history_persistence_email.py --tb=short -q` and only proceed with the commit if all tests pass. If tests fail, fix the issues before committing."
+  },
+  "workspaceFolderName": "pdn_chat",
+  "shortName": "pre-commit-tests"
+}

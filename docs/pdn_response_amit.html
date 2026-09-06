@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>תשובה לפניה — חישוב PDN — amit@israelnbeyond.com</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.8;
+            color: #2d2a26;
+            background: #f8f6f2;
+            padding: 40px 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #5c5650;
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+        h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #8b6914;
+            margin-top: 36px;
+            margin-bottom: 14px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid rgba(201, 169, 110, 0.3);
+        }
+        .result-card {
+            background: linear-gradient(135deg, #1e3a5f, #2d5a8e);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            text-align: center;
+            color: white;
+        }
+        .result-email {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 16px;
+        }
+        .result-code {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+        }
+        .result-details {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 12px;
+        }
+        .result-detail-item {
+            text-align: center;
+        }
+        .result-detail-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        .result-detail-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+        .alert-box {
+            background: #fff8e1;
+            border: 1px solid #f9a825;
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin: 12px 0;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert-icon { font-size: 1.2rem; }
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px;
+            margin: 16px 0;
+            box-shadow: 0 2px 12px rgba(30, 27, 75, 0.06);
+            border: 1px solid rgba(201, 169, 110, 0.12);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.88rem;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background: rgba(139, 105, 20, 0.06);
+            font-weight: 600;
+            color: #5c4a2a;
+        }
+        .dominant { 
+            font-weight: 700; 
+            color: #8b6914;
+        }
+        .highlight-cell {
+            background: rgba(139, 105, 20, 0.08);
+            font-weight: 700;
+        }
+        .summary-box {
+            background: #f0f7f0;
+            border: 1px solid #a5d6a7;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 20px 0;
+            font-size: 0.92rem;
+        }
+        .recommendation {
+            background: rgba(139, 105, 20, 0.04);
+            border-right: 3px solid #c9a96e;
+            padding: 14px 18px;
+            border-radius: 0 10px 10px 0;
+            margin: 16px 0;
+            font-size: 0.92rem;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(201, 169, 110, 0.2);
+            color: #8a8279;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 600px) {
+            body { padding: 16px 12px; }
+            .result-details { gap: 24px; }
+            .result-code { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1>תשובה לפניה — פירוט חישוב קוד PDN</h1>
+    <p class="subtitle">amit@israelnbeyond.com</p>
+
+    <!-- Result -->
+    <div class="result-card">
+        <div class="result-email">amit@israelnbeyond.com</div>
+        <div class="result-code">E9</div>
+        <div class="result-details">
+            <div class="result-detail-item">
+                <div class="result-detail-label">תכונה</div>
+                <div class="result-detail-value">E</div>
+            </div>
+            <div class="result-detail-item">
+                <div class="result-detail-label">אנרגיה</div>
+                <div class="result-detail-value">F</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert-box">
+        <span class="alert-icon">!</span>
+        <span>נדרש אימות אנושי — הפער בין הציונים קטן מ-2 נקודות</span>
+    </div>
+    <div class="alert-box">
+        <span class="alert-icon">~</span>
+        <span>שלב E שינה תכונה דומיננטית: T → E — נדרש אימות</span>
+    </div>
+
+    <!-- Calculation Steps -->
+    <h2>פירוט שלבי החישוב</h2>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>שלב</th>
+                    <th>שאלות</th>
+                    <th>דומיננטי</th>
+                    <th>A</th>
+                    <th>T</th>
+                    <th>P</th>
+                    <th>E</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>① תכונה ראשית</strong></td>
+                    <td>1-26</td>
+                    <td class="dominant">T</td>
+                    <td>9</td>
+                    <td class="highlight-cell">17</td>
+                    <td>9</td>
+                    <td class="highlight-cell">17</td>
+                </tr>
+                <tr>
+                    <td><strong>③ אימות</strong></td>
+                    <td>38-42</td>
+                    <td class="dominant">T</td>
+                    <td>9</td>
+                    <td class="highlight-cell">19</td>
+                    <td>9</td>
+                    <td class="highlight-cell">19</td>
+                </tr>
+                <tr>
+                    <td><strong>④ חיזוק</strong></td>
+                    <td>43-56</td>
+                    <td class="dominant">T</td>
+                    <td>15</td>
+                    <td class="highlight-cell">25</td>
+                    <td>15</td>
+                    <td class="highlight-cell">25</td>
+                </tr>
+                <tr>
+                    <td><strong>⑤ חיזוק דומיננטי</strong></td>
+                    <td>57-60</td>
+                    <td class="dominant">E</td>
+                    <td>39</td>
+                    <td>29</td>
+                    <td>27</td>
+                    <td class="highlight-cell">41</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Energy -->
+    <h2>חישוב אנרגיה (שלב ②)</h2>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>אנרגיה</th>
+                    <th>ציון</th>
+                    <th>סטטוס</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>D — דינמית</td>
+                    <td>15</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td>S — יציבה</td>
+                    <td>20</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td><strong>F — גמישה</strong></td>
+                    <td class="highlight-cell">31</td>
+                    <td class="dominant">דומיננטי</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="summary-box">
+            האנרגיה F ברורה לחלוטין — הפער מול S הוא 11 נקודות.
+        </div>
+    </div>
+
+    <!-- Analysis -->
+    <h2>ניתוח</h2>
+    <div class="card">
+        <ul style="padding-right: 20px;">
+            <li>עד שלב ④, הציונים של T ו-E היו <strong>שווים לחלוטין</strong> (25 כל אחד).</li>
+            <li>שלב ⑤ (משקל גבוה, עד +8 לשאלה) הכריע לטובת E עם 41 מול T עם 29.</li>
+            <li>השינוי בדומיננטיות בשלב האחרון מפעיל דגל אימות.</li>
+            <li>האנרגיה F ברורה ואינה דורשת אימות.</li>
+        </ul>
+    </div>
+
+    <!-- Recommendation -->
+    <h2>המלצה</h2>
+    <div class="recommendation">
+        הקוד <strong>E9</strong> סביר, אבל מומלץ לוודא שהנבדק מזדהה יותר עם E ולא עם T. אם מתברר שהוא T, הקוד יהיה <strong>T12</strong>.
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>דוח זה הופק על בסיס נתוני המערכת | PDN Center</p>
+        <p>תאריך: יוני 2026</p>
+    </div>
+
+</div>
+</body>
+</html>

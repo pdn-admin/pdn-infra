@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>בינת מערכות יחסים - התחברות</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-login.css') }}">
+</head>
+<body>
+<!-- Theme toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+    <i class="fas fa-moon"></i>
+</button>
+
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+    <div class="login-container">
+        <div class="text-center mb-8">
+            <h2 class="login-heading">גלה את הדינמיקה הייחודית שלכם</h2>
+            <p class="login-subheading">שיחה אישית שתעזור לך להבין לעומק את מערכת היחסים שלך, ולמצוא את הדרך לתקשורת טובה יותר</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    אימייל
+                </label>
+                <input type="email" id="email" name="email" required
+                       class="form-input"
+                       placeholder="הזן כתובת אימייל"
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i>
+                    סיסמה
+                </label>
+                <input type="password" id="password" name="password" required
+                       class="form-input"
+                       placeholder="הזן סיסמה"
+                       autocomplete="current-password"
+                       maxlength="50">
+            </div>
+
+            <div class="form-group">
+                <label for="partner_code" class="form-label">
+                    <i class="fas fa-user-friends"></i>
+                    קוד PDN של הצד השני
+                </label>
+                <input type="hidden" id="partner_code" name="partner_code" required>
+                <div class="custom-select-wrapper" data-target="partner_code">
+                    <div class="custom-select-trigger placeholder">בחר קוד PDN</div>
+                    <div class="custom-select-options">
+                        <div class="custom-select-option" data-value="a3">A3</div>
+                        <div class="custom-select-option" data-value="a7">A7</div>
+                        <div class="custom-select-option" data-value="a11">A11</div>
+                        <div class="custom-select-option" data-value="e1">E1</div>
+                        <div class="custom-select-option" data-value="e5">E5</div>
+                        <div class="custom-select-option" data-value="e9">E9</div>
+                        <div class="custom-select-option" data-value="p2">P2</div>
+                        <div class="custom-select-option" data-value="p6">P6</div>
+                        <div class="custom-select-option" data-value="p10">P10</div>
+                        <div class="custom-select-option" data-value="t4">T4</div>
+                        <div class="custom-select-option" data-value="t8">T8</div>
+                        <div class="custom-select-option" data-value="t12">T12</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="relationship_type" class="form-label">
+                    <i class="fas fa-heart"></i>
+                    סוג מערכת היחסים
+                </label>
+                <input type="hidden" id="relationship_type" name="relationship_type" required>
+                <div class="custom-select-wrapper" data-target="relationship_type">
+                    <div class="custom-select-trigger placeholder">בחר סוג מערכת יחסים</div>
+                    <div class="custom-select-options">
+                        <div class="custom-select-option" data-value="partner">בן/בת זוג</div>
+                        <div class="custom-select-option" data-value="friend">חבר/ה</div>
+                        <div class="custom-select-option" data-value="colleague">עמית/ה לעבודה</div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">
+                בואו נתחיל
+            </button>
+        </form>
+
+        <div id="loginError" class="error-message" role="alert" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="loginErrorText">אנא הזן אימייל וסיסמה תקינים</span>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer collapsed">
+            <h3 class="disclaimer-toggle">הסכמה מודעת לייעוץ מערכות יחסים</h3>
+            <div class="disclaimer-content">
+                <p>הייעוץ במערכות יחסים דרך קוד המקור נועד לעורר תודעה, לאפשר הבנה עמוקה יותר של הדינמיקה הבין-אישית, ולהאיר כיוונים לשיפור מערכות היחסים שלך.</p>
+                <p>הייעוץ אינו מחליף טיפול זוגי, משפחתי או פסיכולוגי מקצועי, ואינו מתיימר לאבחן או לפתור בעיות מורכבות.</p>
+                <p>אם עולה קושי רגשי עמוק או מצוקה במערכת היחסים – חשוב לפנות לאיש מקצוע מתאים.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        {% include 'partials/footer.html' %}
+    </div>
+</div>
+
+<script>
+    let isDarkMode = false;
+
+    function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+        document.querySelector('.theme-toggle i').className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+        localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (localStorage.getItem('darkMode') === 'true') {
+            isDarkMode = true;
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.querySelector('.theme-toggle i').className = 'fas fa-sun';
+        }
+
+        document.getElementById('email').focus();
+
+        // Disclaimer toggle
+        const disclaimerToggle = document.querySelector('.disclaimer-toggle');
+        if (disclaimerToggle) {
+            disclaimerToggle.addEventListener('click', function () {
+                this.closest('.disclaimer').classList.toggle('collapsed');
+            });
+        }
+
+        // Custom dropdown logic
+        document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
+            const trigger = wrapper.querySelector('.custom-select-trigger');
+            const options = wrapper.querySelector('.custom-select-options');
+            const targetId = wrapper.dataset.target;
+            const hiddenInput = document.getElementById(targetId);
+
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Close all other dropdowns
+                document.querySelectorAll('.custom-select-options.open').forEach(el => {
+                    if (el !== options) el.classList.remove('open');
+                });
+                document.querySelectorAll('.custom-select-trigger.open').forEach(el => {
+                    if (el !== trigger) el.classList.remove('open');
+                });
+                options.classList.toggle('open');
+                trigger.classList.toggle('open');
+            });
+
+            wrapper.querySelectorAll('.custom-select-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const value = this.dataset.value;
+                    const text = this.textContent;
+                    hiddenInput.value = value;
+                    trigger.textContent = text;
+                    trigger.classList.remove('placeholder');
+                    options.classList.remove('open');
+                    trigger.classList.remove('open');
+                    // Mark selected
+                    wrapper.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+        });
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.custom-select-options.open').forEach(el => el.classList.remove('open'));
+            document.querySelectorAll('.custom-select-trigger.open').forEach(el => el.classList.remove('open'));
+        });
+    });
+
+    // Login form submission
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        hideError();
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const partnerCode = document.getElementById('partner_code').value;
+        const relationshipType = document.getElementById('relationship_type').value;
+
+        if (!email || !password || !partnerCode || !relationshipType) {
+            showError('אנא מלא את כל השדות');
+            return;
+        }
+
+        const submitButton = document.querySelector('.submit-button');
+        submitButton.classList.add('loading');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch('/pdn-relationships/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    password: password,
+                    partner_code: partnerCode,
+                    relationship_type: relationshipType
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '/pdn-relationships/chat-page';
+                } else {
+                    showError(data.error || 'אימייל או סיסמה שגויים');
+                }
+            } else {
+                showError('אימייל או סיסמה שגויים');
+            }
+        } catch (error) {
+            showError('שגיאת תקשורת. אנא נסה שוב.');
+        } finally {
+            submitButton.classList.remove('loading');
+            submitButton.disabled = false;
+        }
+    });
+
+    function showError(message) {
+        const errorDiv = document.getElementById('loginError');
+        const errorText = document.getElementById('loginErrorText');
+        errorText.textContent = message;
+        errorDiv.style.display = 'flex';
+    }
+
+    function hideError() {
+        document.getElementById('loginError').style.display = 'none';
+    }
+
+    // Hide error on input
+    document.getElementById('email').addEventListener('input', hideError);
+    document.getElementById('password').addEventListener('input', hideError);
+</script>
+</body>
+</html>

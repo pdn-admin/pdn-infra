@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מדריך — חישוב מחדש קוד PDN ופירוט הדוח</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.9;
+            color: #1e293b;
+            background: #f8fafc;
+            padding: 40px 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { font-size: 1.8rem; font-weight: 800; color: #0b2e6b; text-align: center; margin-bottom: 8px; }
+        .subtitle { text-align: center; color: #64748b; margin-bottom: 40px; font-size: 0.9rem; }
+        h2 { font-size: 1.3rem; font-weight: 700; color: #0b2e6b; margin-top: 40px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid rgba(11, 46, 107, 0.1); }
+        h3 { font-size: 1.05rem; font-weight: 600; color: #1e293b; margin-top: 20px; margin-bottom: 10px; }
+        p { margin-bottom: 12px; }
+        .step-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin: 16px 0;
+            border: 1px solid #e8ecf4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            position: relative;
+            padding-right: 72px;
+        }
+        .step-number {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0b2e6b, #1a3f7a);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+        .step-title { font-weight: 700; color: #0b2e6b; font-size: 1rem; margin-bottom: 6px; }
+        .step-desc { color: #475569; font-size: 0.9rem; }
+        .note {
+            background: #eff6ff;
+            border-right: 4px solid #0b2e6b;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 0.88rem;
+            color: #1e40af;
+        }
+        .warning {
+            background: #fef3c7;
+            border-right: 4px solid #d97706;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+            font-size: 0.88rem;
+            color: #92400e;
+        }
+        .report-section {
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+            margin: 16px 0;
+            border: 1px solid #e8ecf4;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .report-section h3 { color: #0b2e6b; }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.88rem; }
+        th, td { padding: 10px 14px; text-align: right; border-bottom: 1px solid #f1f5f9; }
+        th { background: #f8fafc; font-weight: 600; color: #475569; }
+        .screenshot {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 12px 0;
+            text-align: center;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        ul { padding-right: 20px; margin: 8px 0; }
+        li { margin-bottom: 6px; }
+        .footer { text-align: center; margin-top: 48px; padding-top: 20px; border-top: 1px solid #e8ecf4; color: #94a3b8; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h1>📋 מדריך: חישוב מחדש קוד PDN</h1>
+    <p class="subtitle">שלב אחרי שלב — מהכפתור בדשבורד ועד הבנת דוח החישוב</p>
+
+    <!-- Part 1: Steps -->
+    <h2>חלק א׳ — איך מחשבים מחדש קוד למשתמש</h2>
+
+    <div class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-title">כניסה למערכת הניהול</div>
+        <div class="step-desc">נכנסים ל-<strong>pdn-chat.onrender.com/pdn-admin</strong> ומזינים אימייל וסיסמה.</div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-title">מציאת המשתמש בטבלה</div>
+        <div class="step-desc">בטבלת "נתוני מאובחנים" — משתמשים בחיפוש לפי שם או אימייל, או גוללים לשורה הרלוונטית.</div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-number">3</div>
+        <div class="step-title">לחיצה על "פעולות" → "חשב מחדש קוד פדן"</div>
+        <div class="step-desc">בעמודת "פעולות" לוחצים על הכפתור הכחול, ומתוך התפריט בוחרים <strong>"חשב מחדש קוד פדן"</strong>.</div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-number">4</div>
+        <div class="step-title">הזנת סיסמת מנהל</div>
+        <div class="step-desc">המערכת תבקש סיסמת מנהל — יש להזין אותה ולאשר.</div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-number">5</div>
+        <div class="step-title">הצגת דוח החישוב</div>
+        <div class="step-desc">מופיע מודל (חלונית) עם <strong>"פירוט חישוב קוד PDN"</strong> — הדוח המלא עם כל שלבי החישוב.</div>
+    </div>
+
+    <div class="step-card">
+        <div class="step-number">6</div>
+        <div class="step-title">שליחה במייל (אופציונלי)</div>
+        <div class="step-desc">בפינה העליונה של הדוח יש כפתור <strong>"שלח במייל"</strong> — לוחצים ומקבלים את הדוח המלא למייל.</div>
+    </div>
+
+    <div class="note">
+        <strong>💡 שימו לב:</strong> החישוב מתבצע מחדש מהתשובות הנוכחיות של המשתמש. אם המשתמש ענה על שאלות נוספות מאז החישוב הקודם — הקוד עשוי להשתנות.
+    </div>
+
+    <!-- Part 2: Understanding the Report -->
+    <h2>חלק ב׳ — הסבר דוח החישוב</h2>
+
+    <p>דוח החישוב מציג את כל שלבי האלגוריתם שהמערכת עברה כדי לקבוע את קוד PDN. הנה הסבר לכל חלק:</p>
+
+    <!-- Top Card -->
+    <div class="report-section">
+        <h3>🎯 כרטיס התוצאה (למעלה)</h3>
+        <p>החלק העליון של הדוח מציג את <strong>התוצאה הסופית</strong>:</p>
+        <table>
+            <tr><th>שדה</th><th>הסבר</th></tr>
+            <tr><td>קוד PDN</td><td>הקוד הסופי, למשל <span class="badge badge-blue">P2</span> או <span class="badge badge-blue">A7</span></td></tr>
+            <tr><td>תכונה</td><td>התכונה הדומיננטית (A/T/P/E) + שם בעברית</td></tr>
+            <tr><td>אנרגיה</td><td>סוג האנרגיה הדומיננטית (D/S/F) + שם בעברית</td></tr>
+            <tr><td>סטטוס</td><td><span class="badge badge-green">תקין</span> = אבחנה ברורה, <span class="badge badge-yellow">נדרש אימות</span> = ניקוד קרוב</td></tr>
+        </table>
+    </div>
+
+    <!-- Stage Breakdown -->
+    <div class="report-section">
+        <h3>📊 פירוט שלבי החישוב</h3>
+        <p>מתחת לכרטיס התוצאה מופיעים 5 שלבים, כל אחד עם גרף עמודות:</p>
+
+        <h3>שלב ① — חישוב תכונה ראשית (שאלות 1-26)</h3>
+        <p>מראה את הניקוד של 4 התכונות: A, T, P, E.</p>
+        <ul>
+            <li><strong>A</strong> — הישגיות/יצירתיות (Achievement)</li>
+            <li><strong>T</strong> — ביטחון/שיטתיות (Trust)</li>
+            <li><strong>P</strong> — הנאה/ביצוע (Pleasure)</li>
+            <li><strong>E</strong> — אדנות/הובלה (Empower)</li>
+        </ul>
+        <p>הפס הארוך ביותר = התכונה הדומיננטית בשלב זה. מסומן כ-<span class="badge badge-blue">דומיננטי: X</span>.</p>
+
+        <h3>שלב ② — חישוב סוג אנרגיה (שאלות 27-37)</h3>
+        <p>מראה את הניקוד של 3 סוגי האנרגיה: D, S, F.</p>
+        <ul>
+            <li><strong>D</strong> — דינמית (Dynamic) — פעיל כל הזמן, מהיר</li>
+            <li><strong>S</strong> — יציבה (Stability) — קצב יציב, מתוכנן</li>
+            <li><strong>F</strong> — גמישה (Flexibility) — מתאים עצמו, זורם</li>
+        </ul>
+
+        <h3>שלב ③ — אימות תכונות (שאלות 38-42)</h3>
+        <p>שאלות סקאלה שמחזקות או מחלישות את התכונות. מדייק את התוצאה מהשלב הראשון.</p>
+
+        <h3>שלב ④ — חיזוק תכונות (שאלות 43-56)</h3>
+        <p>שאלות נוספות עם שילובי תכונות (למשל TP מול AE). אם הניקוד קרוב בשלב ①, שלב זה עוזר להבדיל.</p>
+
+        <h3>שלב ⑤ — חיזוק דומיננטי (שאלות 57-61)</h3>
+        <p><strong>השלב עם המשקל הגבוה ביותר.</strong> דירוג של 4 תיאורי אישיות. מקום 1 = +8 נקודות, מקום 2 = +4, מקום 3 = +2.</p>
+        <div class="warning">
+            <strong>⚠️ חשוב:</strong> אם בשלב זה הניקודים עדיין קרובים (פער ≤ 2 נקודות) — המערכת מסמנת "נדרש אימות אנושי".
+        </div>
+    </div>
+
+    <!-- Reading the bars -->
+    <div class="report-section">
+        <h3>📈 איך קוראים את הגרפים</h3>
+        <table>
+            <tr><th>מה רואים</th><th>מה זה אומר</th></tr>
+            <tr><td>פס כהה + ארוך</td><td>התכונה/אנרגיה הדומיננטית — היא שקובעת את הקוד</td></tr>
+            <tr><td>פס בהיר + קצר</td><td>תכונה משנית — לא משפיעה על הקוד הסופי</td></tr>
+            <tr><td>מספר בצד ימין</td><td>סך הנקודות שצבר בשלב זה</td></tr>
+            <tr><td>תג "דומיננטי: X"</td><td>התכונה המובילה אחרי השלב הנוכחי</td></tr>
+            <tr><td>שני פסים באורך דומה</td><td>ניקוד קרוב — ייתכן שנדרש אימות</td></tr>
+        </table>
+    </div>
+
+    <!-- Final Code Matrix -->
+    <div class="report-section">
+        <h3>🔢 איך נקבע הקוד הסופי</h3>
+        <p>הקוד הסופי נקבע לפי שילוב <strong>התכונה הדומיננטית</strong> + <strong>האנרגיה הדומיננטית</strong>:</p>
+        <table>
+            <tr><th></th><th>D (דינמית)</th><th>S (יציבה)</th><th>F (גמישה)</th></tr>
+            <tr><td><strong>A</strong></td><td>A7</td><td>A11</td><td>A3</td></tr>
+            <tr><td><strong>T</strong></td><td>T4</td><td>T8</td><td>T12</td></tr>
+            <tr><td><strong>P</strong></td><td>P10</td><td>P2</td><td>P6</td></tr>
+            <tr><td><strong>E</strong></td><td>E1</td><td>E5</td><td>E9</td></tr>
+        </table>
+        <p>לדוגמה: תכונה <strong>P</strong> + אנרגיה <strong>S</strong> = קוד <span class="badge badge-blue">P2</span></p>
+    </div>
+
+    <!-- Status Indicators -->
+    <div class="report-section">
+        <h3>🚦 מה המשמעות של הסטטוס</h3>
+        <table>
+            <tr><th>סטטוס</th><th>משמעות</th><th>מה לעשות</th></tr>
+            <tr>
+                <td><span class="badge badge-green">✓ תקין</span></td>
+                <td>הפער בין התכונה הגבוהה לשנייה גדול מ-2 נקודות</td>
+                <td>אפשר לסמוך על הקוד — אבחנה ברורה</td>
+            </tr>
+            <tr>
+                <td><span class="badge badge-yellow">⚠️ נדרש אימות</span></td>
+                <td>הפער קטן מ-2 נקודות — הניקוד קרוב מדי</td>
+                <td>מאבחן אנושי צריך לבדוק את הפרופיל ולקבוע</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Tips -->
+    <div class="report-section">
+        <h3>💡 טיפים לשימוש</h3>
+        <ul>
+            <li><strong>מתי לחשב מחדש?</strong> — כשמשתמש סיים את השאלון אבל הקוד נראה לא מתאים, או אחרי עדכון באלגוריתם</li>
+            <li><strong>למה הקוד השתנה?</strong> — ייתכן שהמשתמש ענה על שאלות נוספות, או שהאלגוריתם עודכן</li>
+            <li><strong>איך לשלוח את הדוח?</strong> — כפתור "שלח במייל" בפינת הדוח שולח את כל הפירוט ל-tomergur@gmail.com</li>
+            <li><strong>מה אם כתוב "נדרש אימות"?</strong> — צריך לבדוק את ההקלטות הקוליות ולהחליט ידנית מהו הקוד הנכון</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 PDN Center | מסמך הדרכה פנימי | גרסה 2.7.0</p>
+    </div>
+
+</div>
+</body>
+</html>

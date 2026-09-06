@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הסבר אלגוריתם חישוב קוד PDN</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.8;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0b2e6b;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-bottom: 40px;
+        }
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #0b2e6b;
+            margin: 40px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #334155;
+            margin: 24px 0 12px;
+        }
+        p { margin-bottom: 12px; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .stage-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            border-right: 4px solid #0b2e6b;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            border-left: 1px solid #e2e8f0;
+        }
+        .stage-card .stage-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #0b2e6b;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-left: 12px;
+        }
+        .stage-card .stage-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0b2e6b;
+            display: inline;
+        }
+        .stage-card .stage-desc {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 4px;
+            margin-bottom: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 0.9rem;
+        }
+        th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            padding: 10px 14px;
+            text-align: right;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        tr:hover { background: #f8fafc; }
+        .matrix-table th { text-align: center; }
+        .matrix-table td { text-align: center; font-weight: 600; }
+        .matrix-table td.code {
+            background: #eff6ff;
+            color: #0b2e6b;
+            font-size: 1rem;
+            font-weight: 800;
+            border-radius: 4px;
+        }
+        .highlight {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .highlight-title {
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+        .example {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+        .example-title {
+            font-weight: 700;
+            color: #166534;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+        .score-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+        }
+        .score-bar .label {
+            width: 30px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .score-bar .bar-bg {
+            flex: 1;
+            height: 20px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .score-bar .bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        .score-bar .value {
+            width: 35px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        .threshold-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .threshold-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+        .threshold-item .value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0b2e6b;
+        }
+        .threshold-item .desc {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .formula {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 16px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            direction: ltr;
+            text-align: left;
+            margin: 12px 0;
+            overflow-x: auto;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        .badge-blue { background: #dbeafe; color: #1d4ed8; }
+        ul { padding-right: 20px; margin: 8px 0; }
+        li { margin-bottom: 6px; }
+        .toc {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 32px;
+        }
+        .toc-title { font-weight: 700; margin-bottom: 12px; color: #0b2e6b; }
+        .toc a {
+            color: #475569;
+            text-decoration: none;
+            display: block;
+            padding: 4px 0;
+            font-size: 0.9rem;
+        }
+        .toc a:hover { color: #0b2e6b; }
+        .final-result {
+            background: linear-gradient(135deg, #0b2e6b 0%, #1a3f7a 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            margin: 24px 0;
+        }
+        .final-result .code {
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin: 12px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>הסבר אלגוריתם חישוב קוד PDN</h1>
+        <p class="subtitle">מסמך טכני המפרט את תהליך החישוב, השלבים, הסיפים והדוגמאות</p>
+
+        <div class="toc">
+            <div class="toc-title">תוכן עניינים</div>
+            <a href="#overview">1. סקירה כללית</a>
+            <a href="#matrix">2. מטריצת הקודים</a>
+            <a href="#stages">3. שלבי החישוב (A-E)</a>
+            <a href="#scoring">4. שיטת הניקוד</a>
+            <a href="#thresholds">5. סיפים ודגלים</a>
+            <a href="#confidence">6. ציון ביטחון</a>
+            <a href="#example">7. דוגמה מלאה</a>
+            <a href="#edge-cases">8. מקרי קצה</a>
+        </div>
+
+        <!-- Section 1: Overview -->
+        <h2 id="overview">1. סקירה כללית</h2>
+        <div class="card">
+            <p>קוד PDN הוא שילוב של שני מרכיבים:</p>
+            <ul>
+                <li><strong>תכונה דומיננטית</strong> - אחת מארבע: A (הישגיות), T (ביטחון), P (הנאה), E (אדנות)</li>
+                <li><strong>אנרגיה מובילה</strong> - אחת משלוש: D (דינמית), S (יציבה), F (גמישה)</li>
+            </ul>
+            <p>השילוב של תכונה + אנרגיה נותן אחד מ-12 קודים אפשריים (למשל A7, T12, P6, E1).</p>
+            <p>החישוב מתבסס על שאלון בן 60 שאלות, מחולק ל-5 שלבים (A עד E), כאשר כל שלב מחזק ומאמת את התוצאות של השלב הקודם.</p>
+        </div>
+
+        <!-- Section 2: Matrix -->
+        <h2 id="matrix">2. מטריצת הקודים</h2>
+        <div class="card">
+            <p>הקוד הסופי נקבע לפי הטבלה הבאה:</p>
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>תכונה \ אנרגיה</th>
+                        <th>D (דינמית)</th>
+                        <th>S (יציבה)</th>
+                        <th>F (גמישה)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>A (הישגיות)</strong></td>
+                        <td class="code">A7</td>
+                        <td class="code">A11</td>
+                        <td class="code">A3</td>
+                    </tr>
+                    <tr>
+                        <td><strong>T (ביטחון)</strong></td>
+                        <td class="code">T4</td>
+                        <td class="code">T8</td>
+                        <td class="code">T12</td>
+                    </tr>
+                    <tr>
+                        <td><strong>P (הנאה)</strong></td>
+                        <td class="code">P10</td>
+                        <td class="code">P2</td>
+                        <td class="code">P6</td>
+                    </tr>
+                    <tr>
+                        <td><strong>E (אדנות)</strong></td>
+                        <td class="code">E1</td>
+                        <td class="code">E5</td>
+                        <td class="code">E9</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section 3: Stages -->
+        <h2 id="stages">3. שלבי החישוב</h2>
+
+        <div class="stage-card">
+            <span class="stage-number">A</span>
+            <span class="stage-title">חישוב תכונה ראשית</span>
+            <div class="stage-desc">שאלות 1-26 | זיהוי התכונה הדומיננטית</div>
+            <p>26 שאלות בחירה בין זוגות תכונות. כל שאלה מציגה זוג כמו AP, ET, AE, או TP.</p>
+            <p>בבחירת זוג, שתי התכונות בזוג מקבלות +1 נקודה כל אחת.</p>
+            <table>
+                <thead>
+                    <tr><th>קוד תשובה</th><th>תכונות שמקבלות נקודה</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>AP</td><td>A +1, P +1</td></tr>
+                    <tr><td>ET</td><td>E +1, T +1</td></tr>
+                    <tr><td>AE</td><td>A +1, E +1</td></tr>
+                    <tr><td>TP</td><td>T +1, P +1</td></tr>
+                </tbody>
+            </table>
+            <p>בסוף השלב, התכונה עם הניקוד הגבוה ביותר היא הדומיננטית (מקסימום אפשרי: 26 לכל תכונה).</p>
+        </div>
+
+        <div class="stage-card">
+            <span class="stage-number">B</span>
+            <span class="stage-title">חישוב סוג אנרגיה</span>
+            <div class="stage-desc">שאלות 27-37 | זיהוי סוג האנרגיה המניעה</div>
+            <p>11 שאלות דירוג. בכל שאלה הנבדק מדרג 3 אפשרויות (D, S, F) לפי סדר התאמה:</p>
+            <table>
+                <thead>
+                    <tr><th>דירוג</th><th>נקודות</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>מקום 1 (הכי מתאים)</td><td>+3 נקודות</td></tr>
+                    <tr><td>מקום 2</td><td>+2 נקודות</td></tr>
+                    <tr><td>מקום 3 (הכי פחות)</td><td>+1 נקודה</td></tr>
+                </tbody>
+            </table>
+            <p>מקסימום אפשרי לכל אנרגיה: 33 נקודות (11 שאלות x 3 נקודות).</p>
+        </div>
+
+        <div class="stage-card">
+            <span class="stage-number">C</span>
+            <span class="stage-title">אימות תכונות</span>
+            <div class="stage-desc">שאלות 38-42 | שבירת שוויון בין תכונות</div>
+            <p>5 שאלות השוואה בין זוגות תכונות. בכל שאלה הנבדק מדרג שני ערכים, והתכונה עם הערך הגבוה מקבלת +1.</p>
+            <p>שלב זה נועד לחזק את ההבדל בין תכונות קרובות ולסייע בשבירת שוויון.</p>
+        </div>
+
+        <div class="stage-card">
+            <span class="stage-number">D</span>
+            <span class="stage-title">חיזוק וחידוד</span>
+            <div class="stage-desc">שאלות 43-56 | חיזוק תכונות באמצעות זוגות משולבים</div>
+            <p>14 שאלות השוואה בין זוגות תכונות משולבים (למשל AE מול TP). התכונות בזוג המנצח מקבלות כל אחת +1.</p>
+            <p>שלב זה מוסיף נקודות לשתי תכונות בו-זמנית, ומחזק דפוסים עקביים.</p>
+        </div>
+
+        <div class="stage-card" style="border-right-color: #dc2626;">
+            <span class="stage-number" style="background: #dc2626;">E</span>
+            <span class="stage-title">דירוג סופי (קריטי)</span>
+            <div class="stage-desc">שאלות 57-60 | דירוג עצמי של התכונות - משקל גבוה</div>
+            <p>5 שאלות דירוג עם משקל גבוה משמעותית:</p>
+            <table>
+                <thead>
+                    <tr><th>דירוג</th><th>נקודות</th><th>השפעה</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>מקום 1</td><td><strong>+8 נקודות</strong></td><td>השפעה מכרעת</td></tr>
+                    <tr><td>מקום 2</td><td>+4 נקודות</td><td>השפעה בינונית</td></tr>
+                    <tr><td>מקום 3</td><td>+2 נקודות</td><td>השפעה קלה</td></tr>
+                    <tr><td>מקום 4</td><td>0 נקודות</td><td>ללא השפעה</td></tr>
+                </tbody>
+            </table>
+            <div class="highlight">
+                <div class="highlight-title">שלב E יכול לשנות את התוצאה הסופית</div>
+                <p>בגלל המשקל הגבוה (עד 40 נקודות נוספות), שלב E עלול "להפוך" את התכונה הדומיננטית שנקבעה בשלבים A-D. כאשר זה קורה, המערכת מסמנת את המקרה כ"שלב E שינה תוצאה" ודורשת אימות אנושי.</p>
+            </div>
+        </div>
+
+        <!-- Section 4: Scoring -->
+        <h2 id="scoring">4. שיטת הניקוד</h2>
+        <div class="card">
+            <h3>סיכום משקלות לפי שלב</h3>
+            <table>
+                <thead>
+                    <tr><th>שלב</th><th>שאלות</th><th>נקודות לשאלה</th><th>מקסימום תרומה</th><th>מה נמדד</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>A</td><td>1-26</td><td>+1 לכל תכונה בזוג</td><td>26 לתכונה</td><td>תכונות (A,T,P,E)</td></tr>
+                    <tr><td>B</td><td>27-37</td><td>3/2/1 לפי דירוג</td><td>33 לאנרגיה</td><td>אנרגיה (D,S,F)</td></tr>
+                    <tr><td>C</td><td>38-42</td><td>+1 למנצח</td><td>5 לתכונה</td><td>תכונות (חיזוק)</td></tr>
+                    <tr><td>D</td><td>43-56</td><td>+1 לכל תכונה בזוג</td><td>14 לתכונה</td><td>תכונות (חיזוק)</td></tr>
+                    <tr><td>E</td><td>57-60</td><td>8/4/2/0 לפי דירוג</td><td>40 לתכונה</td><td>תכונות (מכריע)</td></tr>
+                </tbody>
+            </table>
+            <p><strong>מקסימום תיאורטי לתכונה:</strong> 26 + 5 + 14 + 40 = 85 נקודות</p>
+            <p><strong>מקסימום תיאורטי לאנרגיה:</strong> 33 נקודות</p>
+        </div>
+
+        <!-- Section 5: Thresholds -->
+        <h2 id="thresholds">5. סיפים ודגלים</h2>
+        <div class="card">
+            <h3>סף אימות אנושי (Verification Needed)</h3>
+            <div class="highlight">
+                <div class="highlight-title">כלל הסף: פער של 2 נקודות או פחות</div>
+                <p>אם הפער בין התכונה הגבוהה ביותר לשנייה בגובהה הוא <strong>2 נקודות או פחות</strong>, המערכת מסמנת "נדרש אימות אנושי".</p>
+            </div>
+            <div class="formula">
+gap = highest_trait_score - second_highest_trait_score
+if gap <= 2: needs_verification = True</div>
+
+            <h3>דגלים נוספים לאימות</h3>
+            <table>
+                <thead>
+                    <tr><th>דגל</th><th>תנאי</th><th>משמעות</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-red">שלב E חסר</span></td>
+                        <td>שאלות 57-60 לא נענו</td>
+                        <td>חלק קריטי מהשאלון חסר, התוצאה מבוססת על שלבים A-D בלבד</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-yellow">שלב E שינה תוצאה</span></td>
+                        <td>התכונה הדומיננטית השתנתה בשלב E</td>
+                        <td>הדירוג העצמי סותר את השלבים הקודמים - שקול שיחה</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-yellow">ניקוד קרוב</span></td>
+                        <td>פער &le; 2 בין שתי התכונות המובילות</td>
+                        <td>אין הכרעה ברורה - מומלץ שיחה עם מאבחן</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Section 6: Confidence -->
+        <h2 id="confidence">6. ציון ביטחון (Confidence Score)</h2>
+        <div class="card">
+            <p>ציון הביטחון (0-100) מבטא כמה ברורה וחד-משמעית התוצאה:</p>
+            <div class="formula">
+// Trait confidence (0-50 points)
+trait_gap = first_trait - second_trait
+trait_dominance = (trait_gap / total_traits) * 100
+trait_confidence = min(50, trait_dominance * 2.5)
+
+// Energy confidence (0-50 points)  
+energy_gap = first_energy - second_energy
+energy_dominance = (energy_gap / total_energies) * 100
+energy_confidence = min(50, energy_dominance * 2.5)
+
+confidence = trait_confidence + energy_confidence  // 0-100</div>
+
+            <h3>פירוש הציון</h3>
+            <div class="threshold-box">
+                <div class="threshold-item">
+                    <div class="value" style="color: #166534;">80-100%</div>
+                    <div class="desc">ביטחון גבוה - פער גדול, תוצאה אמינה</div>
+                </div>
+                <div class="threshold-item">
+                    <div class="value" style="color: #854d0e;">60-79%</div>
+                    <div class="desc">ביטחון בינוני - פער סביר, כדאי לוודא</div>
+                </div>
+                <div class="threshold-item">
+                    <div class="value" style="color: #c2410c;">40-59%</div>
+                    <div class="desc">ביטחון נמוך - פער קטן, מומלץ אימות</div>
+                </div>
+                <div class="threshold-item">
+                    <div class="value" style="color: #991b1b;">0-39%</div>
+                    <div class="desc">ביטחון נמוך מאוד - שקול שיחה</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 7: Example -->
+        <h2 id="example">7. דוגמה מלאה</h2>
+        <div class="example">
+            <div class="example-title">דוגמה: חישוב קוד PDN עבור משתמש</div>
+
+            <h3>שלב A - תכונה ראשית (שאלות 1-26)</h3>
+            <p>הנבדק ענה על 26 שאלות. תוצאות מצטברות:</p>
+            <div class="score-bar">
+                <span class="label" style="color:#0b2e6b;">A</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:62%;background:#0b2e6b;"></div></div>
+                <span class="value">16</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">E</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:42%;background:#94a3b8;"></div></div>
+                <span class="value">11</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">T</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:38%;background:#94a3b8;"></div></div>
+                <span class="value">10</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">P</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:35%;background:#94a3b8;"></div></div>
+                <span class="value">9</span>
+            </div>
+            <p>דומיננטית: <strong>A</strong> (פער של 5 נקודות מ-E)</p>
+
+            <h3>שלב B - אנרגיה (שאלות 27-37)</h3>
+            <p>הנבדק דירג אנרגיות ב-11 שאלות:</p>
+            <div class="score-bar">
+                <span class="label" style="color:#0b2e6b;">F</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:73%;background:#0b2e6b;"></div></div>
+                <span class="value">24</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">D</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:70%;background:#94a3b8;"></div></div>
+                <span class="value">23</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">S</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:58%;background:#94a3b8;"></div></div>
+                <span class="value">19</span>
+            </div>
+            <p>דומיננטית: <strong>F</strong> (פער של 1 נקודה מ-D)</p>
+
+            <h3>שלבים C+D - חיזוק (שאלות 38-56)</h3>
+            <p>לאחר 19 שאלות חיזוק, הניקוד המצטבר:</p>
+            <div class="score-bar">
+                <span class="label" style="color:#0b2e6b;">A</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:58%;background:#0b2e6b;"></div></div>
+                <span class="value">25</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">E</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:44%;background:#94a3b8;"></div></div>
+                <span class="value">19</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">P</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:37%;background:#94a3b8;"></div></div>
+                <span class="value">16</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">T</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:35%;background:#94a3b8;"></div></div>
+                <span class="value">15</span>
+            </div>
+            <p>דומיננטית: <strong>A</strong> (מחוזקת, פער 6 נקודות)</p>
+
+            <h3>שלב E - דירוג סופי (שאלות 57-60)</h3>
+            <p>הנבדק דירג את עצמו (משקל 8/4/2/0). ניקוד סופי:</p>
+            <div class="score-bar">
+                <span class="label" style="color:#0b2e6b;">A</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:76%;background:#0b2e6b;"></div></div>
+                <span class="value">65</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">E</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:46%;background:#94a3b8;"></div></div>
+                <span class="value">39</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">P</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:28%;background:#94a3b8;"></div></div>
+                <span class="value">24</span>
+            </div>
+            <div class="score-bar">
+                <span class="label" style="color:#64748b;">T</span>
+                <div class="bar-bg"><div class="bar-fill" style="width:26%;background:#94a3b8;"></div></div>
+                <span class="value">22</span>
+            </div>
+            <p>דומיננטית: <strong>A</strong> (פער 26 נקודות - מאושר)</p>
+
+            <div class="final-result">
+                <div style="font-size:0.9rem;opacity:0.7;">תוצאה סופית</div>
+                <div class="code">A3</div>
+                <div style="font-size:0.9rem;opacity:0.8;">תכונה: A (הישגיות) | אנרגיה: F (גמישה)</div>
+                <div style="margin-top:12px;"><span class="badge badge-green">ביטחון: 47%</span></div>
+            </div>
+
+            <h3>חישוב ציון ביטחון לדוגמה זו</h3>
+            <div class="formula">
+// תכונות: A=65, E=39, P=24, T=22  (total=150)
+trait_gap = 65 - 39 = 26
+trait_dominance = (26 / 150) * 100 = 17.3%
+trait_confidence = min(50, 17.3 * 2.5) = 43.3
+
+// אנרגיה: F=24, D=23, S=19  (total=66)
+energy_gap = 24 - 23 = 1
+energy_dominance = (1 / 66) * 100 = 1.5%
+energy_confidence = min(50, 1.5 * 2.5) = 3.8
+
+confidence = 43.3 + 3.8 = 47%</div>
+            <p>ציון 47% - ביטחון נמוך. הסיבה: פער קטן באנרגיה (F מול D - נקודה אחת). התכונה ברורה אבל האנרגיה לא חד-משמעית.</p>
+        </div>
+
+        <!-- Section 8: Edge Cases -->
+        <h2 id="edge-cases">8. מקרי קצה</h2>
+        <div class="card">
+            <h3>שוויון מושלם (Tie)</h3>
+            <p>כאשר שתי תכונות או יותר זהות בניקוד, המערכת:</p>
+            <ul>
+                <li>בוחרת את הראשונה לפי סדר אלפביתי (A לפני E לפני P לפני T)</li>
+                <li>מסמנת "נדרש אימות" (פער = 0)</li>
+                <li>מפיקה ציון ביטחון נמוך</li>
+            </ul>
+
+            <h3>שאלון חלקי (שלב E חסר)</h3>
+            <p>אם הנבדק לא ענה על שלב E (שאלות 57-60):</p>
+            <ul>
+                <li>החישוב מתבסס רק על שלבים A-D</li>
+                <li>המערכת מסמנת "שלב E חסר"</li>
+                <li>נדרש אימות אנושי בכל מקרה</li>
+            </ul>
+
+            <h3>היפוך בשלב E</h3>
+            <p>כאשר הדירוג העצמי בשלב E מחליף את התכונה הדומיננטית (למשל: A הייתה מובילה בשלבים A-D, אך E הפכה למובילה אחרי שלב E):</p>
+            <ul>
+                <li>המערכת מציגה את שתי האפשרויות</li>
+                <li>מסומן "שלב E שינה תוצאה" באדום</li>
+                <li>נדרש אימות אנושי - השאלה היא אם הנבדק מזדהה עם הדירוג העצמי או עם התשובות האובייקטיביות</li>
+            </ul>
+
+            <h3>קוד NA</h3>
+            <p>המערכת מחזירה "NA" כאשר:</p>
+            <ul>
+                <li>אין תשובות כלל</li>
+                <li>כל הניקודים הם 0</li>
+                <li>תכונה או אנרגיה לא הוגדרו ("Undetermined")</li>
+            </ul>
+        </div>
+
+        <div style="margin-top:48px;padding-top:24px;border-top:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:0.8rem;">
+            מסמך זה נוצר אוטומטית מקוד המקור של מודול pdn_calculator.py | תאריך: יוני 2026
+        </div>
+    </div>
+</body>
+</html>

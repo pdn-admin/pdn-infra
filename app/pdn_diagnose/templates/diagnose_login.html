@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8"/>
+    <title>מערכת אבחון אישי PDN</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-login.css') }}">
+</head>
+<body>
+
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+    <div class="login-container">
+        <!-- Logo -->
+        <div class="text-center mb-2">
+            <a href="https://www.pdn.co.il" target="_blank" style="display: inline-block;">
+                <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN Logo"
+                     style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(201, 169, 110, 0.25);">
+            </a>
+        </div>
+
+        <!-- Heading -->
+        <div class="text-center mb-8">
+            <h2 class="login-heading">ברוך הבא למסע הגילוי</h2>
+            <p class="login-subheading">הזן פרטים כדי להתחיל את האבחון לגילוי קוד המקור שלך</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    אימייל
+                </label>
+                <input type="email" id="email" name="email" required
+                       class="form-input"
+                       placeholder="הזן כתובת אימייל"
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-key"></i>
+                    סיסמה או קוד קופון
+                </label>
+                <input type="text" id="password" name="password" required
+                       class="form-input"
+                       placeholder="הזן סיסמה או קוד קופון"
+                       autocomplete="off"
+                       maxlength="50">
+            </div>
+
+            <button type="submit" class="submit-button">
+                התחל אבחון
+            </button>
+        </form>
+
+        <div id="loginError" class="error-message" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="loginErrorText">פרטים שגויים</span>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(201, 169, 110, 0.1);">
+            <p style="font-size: 11px; color: #8a8279; margin: 0;">&copy; 2025 PDN Center כל הזכויות שמורות</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Auto-fill from URL params (from coupon invite email)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('code')) {
+            document.getElementById('password').value = params.get('code');
+        }
+        if (params.get('email')) {
+            document.getElementById('email').value = params.get('email');
+        }
+
+        document.getElementById('email').focus();
+
+        // Disclaimer toggle
+        const disclaimerToggle = document.querySelector('.disclaimer-toggle');
+        if (disclaimerToggle) {
+            disclaimerToggle.addEventListener('click', function () {
+                this.closest('.disclaimer').classList.toggle('collapsed');
+            });
+        }
+    });
+
+    function showError(message) {
+        const errorEl = document.getElementById('loginError');
+        document.getElementById('loginErrorText').textContent = message || 'פרטים שגויים';
+        errorEl.style.display = 'flex';
+    }
+
+    function hideError() {
+        document.getElementById('loginError').style.display = 'none';
+    }
+
+    // Hide error on input
+    document.getElementById('email').addEventListener('input', hideError);
+    document.getElementById('password').addEventListener('input', hideError);
+
+    // Form submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError();
+
+        const submitButton = e.target.querySelector('.submit-button');
+        submitButton.classList.add('loading');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch('/pdn-diagnose/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                })
+            });
+
+            if (response.ok) {
+                window.location.href = '/pdn-diagnose/user_info';
+            } else {
+                const data = await response.json();
+                showError(data.error || 'פרטים שגויים');
+            }
+        } catch (error) {
+            showError('שגיאה בהתחברות, נסה שוב');
+            console.error('Login error:', error);
+        } finally {
+            submitButton.classList.remove('loading');
+            submitButton.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

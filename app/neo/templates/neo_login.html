@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
+    <title>Neo - התחברות</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-login.css') }}">
+    <style>
+        .header-content {
+            padding: 30px 20px;
+            justify-content: flex-start;
+        }
+    </style>
+</head>
+<body>
+<!-- Theme toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+    <i class="fas fa-moon"></i>
+</button>
+
+<!-- Header with improved layout -->
+<header class="header-gradient" dir="ltr">
+    <div class="header-content" dir="ltr">
+        <!-- Logo and title section -->
+        <div class="header-left">
+            <a href="https://www.pdn.co.il" target="_blank" class="logo-link">
+                <img src="/static/images/pdn_logo.png" alt="PDN Logo" class="header-logo"/>
+            </a>
+            <div class="header-text text-left">
+                <h1 class="text-2xl font-bold mb-2 text-white" style="text-align: left;">Neo</h1>
+                <p class="text-2xl opacity-90 text-white">PDN Center</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+    <div class="login-container">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-blue-900 mb-2">Neo</h2>
+            <p class="text-blue-700">התחבר כדי להתחיל   </p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div class="form-group">
+                <label for="username" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    אימייל
+                </label>
+                <input type="email" id="username" name="email" required
+                       class="form-input"
+                       placeholder="הזן כתובת אימייל"
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i>
+                    סיסמה
+                </label>
+                <input type="password" id="password" name="password" required
+                       class="form-input"
+                       placeholder="הזן סיסמה"
+                       autocomplete="current-password"
+                       maxlength="50">
+            </div>
+
+            <button type="submit" class="submit-button">
+                <i class="fas fa-sign-in-alt"></i>
+               התחבר
+            </button>
+        </form>
+
+        <div id="loginError" class="error-message">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span>אנא הזן אימייל וסיסמה תקינים</span>
+        </div>
+        <!-- Footer -->
+        {% include 'partials/footer.html' %}
+    </div>
+</div>
+
+
+<script>
+    let isDarkMode = false;
+
+    // Function to generate UUID
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    // Function to show error message
+    function showError(message) {
+        const loginError = document.getElementById('loginError');
+        const errorSpan = loginError.querySelector('span');
+        errorSpan.textContent = message;
+        loginError.style.display = 'block';
+    }
+
+    // Function to hide error message
+    function hideError() {
+        const loginError = document.getElementById('loginError');
+        loginError.style.display = 'none';
+    }
+
+    // Function to validate form
+    function validateForm() {
+        const emailInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const submitButton = document.querySelector('.submit-button');
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        // Basic email validation (must contain @ and have at least 5 characters)
+        const emailValid = email.length >= 5 && email.includes('@');
+        const passwordValid = password.length >= 1;
+
+        if (!emailValid || !passwordValid) {
+            submitButton.disabled = true;
+            return false;
+        } else {
+            submitButton.disabled = false;
+            return true;
+        }
+    }
+
+    // Theme toggle with proper state management
+    function toggleTheme() {
+        isDarkMode = !isDarkMode;
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+
+        const themeIcon = document.querySelector('.theme-toggle i');
+        themeIcon.className = isDarkMode ? 'fas fa-sun' : 'fas fa-moon';
+
+        // Save preference
+        localStorage.setItem('darkMode', isDarkMode);
+    }
+
+    // Hide error when user starts typing
+    document.getElementById('username').addEventListener('input', function () {
+        hideError();
+        validateForm();
+    });
+
+    // Hide error when password is entered
+    document.getElementById('password').addEventListener('input', function () {
+        hideError();
+        validateForm();
+    });
+
+    // Focus on username input when page loads
+    document.addEventListener('DOMContentLoaded', function () {
+        const usernameInput = document.getElementById('username');
+        usernameInput.focus();
+
+        // Load theme preference
+        const savedTheme = localStorage.getItem('darkMode');
+        if (savedTheme === 'true') {
+            isDarkMode = true;
+            document.documentElement.setAttribute('data-theme', 'dark');
+            const themeIcon = document.querySelector('.theme-toggle i');
+            themeIcon.className = 'fas fa-sun';
+        }
+
+        // Check if user is already logged in
+        const storedUsername = localStorage.getItem('neo_username');
+        const storedUserId = localStorage.getItem('neo_user_id');
+        const storedPdnCode = localStorage.getItem('neo_pdn_code');
+
+        if (storedUsername && storedUserId && storedPdnCode) {
+            // User is already logged in, redirect to analysis page
+            window.location.href = '/neo/analysis';
+            return;
+        }
+
+        // Check if we have a stored username for auto-fill
+        if (storedUsername) {
+            usernameInput.value = storedUsername;
+            validateForm();
+        }
+    });
+
+    // Form submission
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const emailInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const submitButton = document.querySelector('.submit-button');
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!email || !password) {
+            showError('אנא הזן אימייל וסיסמה');
+            return;
+        }
+
+        // Show loading state
+        submitButton.classList.add('loading');
+        submitButton.disabled = true;
+
+        try {
+            // Make API call to login endpoint
+            const response = await fetch('/pdn-binat/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Store user data in localStorage
+                localStorage.setItem('neo_username', data.user_name);
+                localStorage.setItem('neo_user_id', data.user_id);
+                localStorage.setItem('neo_pdn_code', data.pdn_code);
+
+                // Redirect to analysis page
+                window.location.href = '/neo/analysis';
+            } else {
+                showError(data.error || 'שגיאה בהתחברות');
+                submitButton.classList.remove('loading');
+                submitButton.disabled = false;
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showError('שגיאה בחיבור לשרת');
+            submitButton.classList.remove('loading');
+            submitButton.disabled = false;
+        }
+    });
+
+    // Handle Enter key press
+    document.getElementById('username').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && !document.querySelector('.submit-button').disabled) {
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+    });
+</script>
+</body>
+</html>
+ 

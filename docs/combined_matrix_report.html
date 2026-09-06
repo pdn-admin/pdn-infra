@@ -1,0 +1,2405 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<title>PDN - דוח מטריצות משולב (קוד מאבחן)</title>
+<style>
+* { box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f0f2f5;
+    direction: rtl;
+}
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 5px;
+    font-size: 24px;
+}
+h2 {
+    color: #34495e;
+    margin-top: 40px;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    background: #2c3e50;
+    color: white;
+    border-radius: 6px;
+    font-size: 16px;
+}
+.summary {
+    text-align: center;
+    color: #555;
+    margin-bottom: 15px;
+    font-size: 13px;
+}
+.section {
+    margin-bottom: 40px;
+}
+.filter-bar {
+    background: #ecf0f1;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.filter-bar label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+.filter-bar select {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #bdc3c7;
+    font-size: 12px;
+    min-width: 200px;
+}
+.filter-bar .filter-count {
+    font-size: 11px;
+    color: #7f8c8d;
+    margin-right: 10px;
+}
+.table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 70vh;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 10px;
+}
+table {
+    border-collapse: collapse;
+    font-size: 11px;
+    white-space: nowrap;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 4px 6px;
+    text-align: center;
+}
+.m1 th {
+    background: #34495e;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.m1 th.user-header {
+    background: #2c3e50;
+    position: sticky;
+    right: 0;
+    z-index: 20;
+    text-align: right;
+    min-width: 200px;
+}
+.m1 td.user-cell {
+    background: #ecf0f1;
+    position: sticky;
+    right: 0;
+    z-index: 5;
+    text-align: right;
+    font-weight: bold;
+    font-size: 10px;
+}
+.m1 th.q-header {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    max-width: 28px;
+    height: 160px;
+    font-size: 9px;
+    padding: 4px 2px;
+}
+.m1 td.answer-ap { background: #d4efdf; color: #1e8449; }
+.m1 td.answer-et { background: #d6eaf8; color: #1a5276; }
+.m1 td.answer-tp { background: #fdebd0; color: #935116; }
+.m1 td.answer-ae { background: #fadbd8; color: #922b21; }
+.m1 td.answer-ranking { background: #f9f9f9; color: #333; font-size: 9px; }
+.m1 td.answer-pref { background: #e8daef; color: #4a235a; font-size: 9px; }
+.m1 td.empty { background: #f8f8f8; color: #ccc; }
+.m2 th {
+    background: #34495e;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    font-size: 12px;
+}
+.m2 th.q-col {
+    background: #2c3e50;
+    position: sticky;
+    right: 0;
+    z-index: 20;
+    text-align: right;
+    min-width: 220px;
+    max-width: 300px;
+    white-space: normal;
+    font-size: 11px;
+}
+.m2 td.q-cell {
+    background: #f8f9fa;
+    position: sticky;
+    right: 0;
+    z-index: 5;
+    text-align: right;
+    font-size: 10px;
+    max-width: 300px;
+    white-space: normal;
+}
+.m2 td.stat-cell {
+    font-size: 10px;
+    min-width: 80px;
+    white-space: normal;
+    line-height: 1.4;
+}
+.stat-bar {
+    display: flex;
+    height: 12px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 2px;
+}
+.bar-segment { height: 100%; min-width: 1px; }
+.bar-ap { background: #27ae60; }
+.bar-et { background: #2980b9; }
+.bar-tp { background: #e67e22; }
+.bar-ae { background: #c0392b; }
+.bar-d { background: #8e44ad; }
+.bar-s { background: #16a085; }
+.bar-f { background: #f39c12; }
+.bar-other { background: #95a5a6; }
+.dominant { font-weight: bold; font-size: 10px; }
+.stat-label { font-size: 9px; color: #666; }
+.no-data { color: #ccc; }
+.phase-row td {
+    background: #7f8c8d;
+    color: white;
+    font-weight: bold;
+    font-size: 11px;
+    text-align: center;
+}
+.insights-table {
+    width: 100%;
+    font-size: 12px;
+}
+.insights-table th {
+    background: #2c3e50;
+    color: white;
+    padding: 8px 10px;
+    text-align: right;
+}
+.insights-table td {
+    padding: 6px 10px;
+    text-align: right;
+    white-space: normal;
+    vertical-align: top;
+}
+.insights-table tr:nth-child(even) { background: #f8f9fa; }
+.sig-bar {
+    display: inline-block;
+    height: 14px;
+    border-radius: 3px;
+    min-width: 4px;
+    vertical-align: middle;
+}
+.sig-high { background: #e74c3c; }
+.sig-med { background: #f39c12; }
+.sig-low { background: #3498db; }
+.sig-none { background: #bdc3c7; }
+.code-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: bold;
+    margin: 1px;
+}
+.code-E { background: #d6eaf8; color: #1a5276; }
+.code-A { background: #d4efdf; color: #1e8449; }
+.code-T { background: #fdebd0; color: #935116; }
+.code-P { background: #fadbd8; color: #922b21; }
+.pdn-code {
+    display: inline-block;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: bold;
+    font-size: 10px;
+    margin-right: 4px;
+}
+.pdn-E { background: #d6eaf8; color: #1a5276; }
+.pdn-A { background: #d4efdf; color: #1e8449; }
+.pdn-T { background: #fdebd0; color: #935116; }
+.pdn-P { background: #fadbd8; color: #922b21; }
+.pdn-NA { background: #eee; color: #999; }
+.code-counts {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+nav {
+    position: sticky;
+    top: 0;
+    background: #2c3e50;
+    padding: 10px 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    z-index: 100;
+    text-align: center;
+}
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+    font-size: 13px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+nav a:hover { background: #4a6fa5; }
+tr.hidden { display: none; }
+.m2 col.hidden-col { visibility: collapse; }
+</style>
+</head>
+<body>
+
+<h1>PDN - דוח מטריצות משולב (קוד מאבחן)</h1>
+<div class="summary">
+    סה"כ משתמשים עם קוד מאבחן תקין: 17 | שאלות: 61<br>
+    * הדוח מבוסס על "קוד מאבחן" בלבד (לא קוד מערכת)<br>
+    נוצר: 27/07/2026 10:16
+</div>
+
+<nav>
+    <a href="#matrix1">מטריצת משתמשים</a>
+    <a href="#matrix2">מטריצת קודים</a>
+</nav>
+
+<!-- ====== SECTION 1: USER ANSWERS MATRIX ====== -->
+<div class="section" id="matrix1">
+<h2>1. מטריצת תשובות משתמשים</h2>
+<div class="filter-bar">
+    <label>סנן משתמש:</label>
+    <select id="userFilter" onchange="filterUsers()">
+        {user_options_html}
+    </select>
+    <span class="filter-count" id="userCount">מציג {len(users_with_answers)} משתמשים</span>
+</div>
+<div class="table-container">
+<table class="m1" id="userTable">
+<thead>
+<tr>
+<th class="user-header">משתמש (שם / UID / PDN)</th>
+<th class="q-header" title="Q1: כיצד היית מתאר/ת את עצמך ביומיום? [AP/ET]">Q1</th>
+<th class="q-header" title="Q2: האם אתה נוטה בדרך כלל לפעול בצורה יותר מחושבת או יותר ספונטנית? [AP/ET]">Q2</th>
+<th class="q-header" title="Q3: האם אתה נוטה להיות יותר אימפולסיבי או יותר שקול? [AP/ET]">Q3</th>
+<th class="q-header" title="Q4: האם אתה בדרך כלל יותר מרוכז או מוסח בקלות? [AP/ET]">Q4</th>
+<th class="q-header" title="Q5: האם אתה בדרך כלל מתכנן את היום מראש או זורם עם מה שמגיע? [AP/ET]">Q5</th>
+<th class="q-header" title="Q6: האם ביומיום אתה נוטה להיות יותר ממוקד משימה או יותר ממוקד אנשים? [AP/ET]">Q6</th>
+<th class="q-header" title="Q7: האם אתה מוצא את עצמך יותר מכבה שריפות או מוכן מראש? [AP/ET]">Q7</th>
+<th class="q-header" title="Q8: האם אתה נוטה להציב גבולות ברורים? [AP/ET]">Q8</th>
+<th class="q-header" title="Q9: סגנון הדיבור שלי יותר? [AP/ET]">Q9</th>
+<th class="q-header" title="Q10: בדרך כלל אתה נוטה להיות יותר פתוח ומשתף או יותר דיסקרטי וענייני? [AP/ET]">Q10</th>
+<th class="q-header" title="Q11: אתה מוצא עצמך בהתנהלות יומיומית: יותר ממוקד או יותר מתפזר [AP/ET]">Q11</th>
+<th class="q-header" title="Q12: בשיחה אני יותר: תמציתי וקצר / מרחיב ומשתף [AP/ET]">Q12</th>
+<th class="q-header" title="Q13: בהתנהלותי אני יותר: [AP/ET]">Q13</th>
+<th class="q-header" title="Q14: איך אתה נוטה לפעול במצב של חילוקי דעותי: [AP/ET]">Q14</th>
+<th class="q-header" title="Q15: בשיחה אתה נוטה יותר: [AE/TP]">Q15</th>
+<th class="q-header" title="Q16: האם אתה נוהג לומר את דעתך או להימנע? [AE/TP]">Q16</th>
+<th class="q-header" title="Q17: כשיש קונפליקט אני: [AE/TP]">Q17</th>
+<th class="q-header" title="Q18: בדרך כלל אתה יוזם או מצטרף ? [AE/TP]">Q18</th>
+<th class="q-header" title="Q19: כשמשהו מפריע לך, אתה מבליג או מבטא? [AE/TP]">Q19</th>
+<th class="q-header" title="Q20: מול אנשים חדשים: מציג עצמך באיפוק או בביטחון [AE/TP]">Q20</th>
+<th class="q-header" title="Q21: בדרך כלל בעימות אתה יותר מאופק או יותר מביע את דעתך? [AE/TP]">Q21</th>
+<th class="q-header" title="Q22: התגובה הטבעית שלך כשכועסים עליך בדרך כלל היא: [AE/TP]">Q22</th>
+<th class="q-header" title="Q23: בדרך כלל אתה נוטה יותר לקחת פיקוד או להצטרף? [AE/TP]">Q23</th>
+<th class="q-header" title="Q24: בוויכוח אתה מוצא את עצמך יותר מקבל או יותר מאתגר? [AE/TP]">Q24</th>
+<th class="q-header" title="Q25: כשאתה נדרש לפתרון מהיר: [AE/TP]">Q25</th>
+<th class="q-header" title="Q26: אני בדרך כלל: [AE/TP]">Q26</th>
+<th class="q-header" title="Q27: במהלך היום, כיצד אתה נוטה להתנהל? [D/F/S]">Q27</th>
+<th class="q-header" title="Q28: איך היית מתאר את רמת האנרגיה שלך ביום-יום? [D/F/S]">Q28</th>
+<th class="q-header" title="Q29: בדרך כלל, מהי הגישה שלך לגבי פעילויות לאורך היום: [D/F/S]">Q29</th>
+<th class="q-header" title="Q30: איך אתה מתנהל עם משימה שעליך לסיים עד מועד מסוים? [D/F/S]">Q30</th>
+<th class="q-header" title="Q31: תחת ריבוי משימות אני מוצא עצמי: [D/F/S]">Q31</th>
+<th class="q-header" title="Q32: אני מתנהל ביום יום בעיקר: [D/F/S]">Q32</th>
+<th class="q-header" title="Q33: באפן כללי ניתן להגדיר אותך: [D/F/S]">Q33</th>
+<th class="q-header" title="Q34: ביום עמוס במיוחד אני: [D/F/S]">Q34</th>
+<th class="q-header" title="Q35: איך אתה מתאר את קצב העבודה שלך ? [D/F/S]">Q35</th>
+<th class="q-header" title="Q36: בדרך כלל אני: [D/F/S]">Q36</th>
+<th class="q-header" title="Q37: איך אתה מתנהל עם ארוחות היום: [D/F/S]">Q37</th>
+<th class="q-header" title="Q38: באיזו מידה אתה נוטה לבדוק לעומק לפני נטילת סיכון? [A/T]">Q38</th>
+<th class="q-header" title="Q39: עד כמה קשה לך להסתדר עם מצבי חוסר ודאות? [A/T]">Q39</th>
+<th class="q-header" title="Q40: באיזו מידה אתה מקבל החלטות במהירות באופן כללי? [E/P]">Q40</th>
+<th class="q-header" title="Q41: האם קשה לך לקבל הנחיות והובלה מאחרים? [E/P]">Q41</th>
+<th class="q-header" title="Q42: עד כמה אתה מרגיש נוח להוביל אחרים כשאין הנהגה ברורה? [E/P]">Q42</th>
+<th class="q-header" title="Q43: כיצד היית מגדיר את עצמך בילדותך מבחינת מוחצנות או מופנמות: [AE/TP]">Q43</th>
+<th class="q-header" title="Q44: כיצד היית מגדיר את עצמך בבגרותך מבחינת מוחצנות או מופנמות: [AE/TP]">Q44</th>
+<th class="q-header" title="Q45: נקד בשתי האופציות בילדות את הרמה שלך להנהגה / הצטרפות: [AE/TP]">Q45</th>
+<th class="q-header" title="Q46: נקד בשתי האופציות בבגרות את הרמה שלך להנהגה / הצטרפות: [AE/TP]">Q46</th>
+<th class="q-header" title="Q47: עד כמה נטית לדבר או להקשיב בשקט בילדותך? [AE/TP]">Q47</th>
+<th class="q-header" title="Q48: עד כמה אתה נוטה לדבר או להקשיב בשקט בבגרותך? [AE/TP]">Q48</th>
+<th class="q-header" title="Q49: נקד בשתי האופציות בילדות את הרמה שלך לעימותים / לריצוי: [AE/TP]">Q49</th>
+<th class="q-header" title="Q50: נקד בשתי האופציות בבגרות את הרמה שלך לעימותים / לריצוי: [AE/TP]">Q50</th>
+<th class="q-header" title="Q51: עד כמה הקפדת לעמוד בזמנים בילדותך: [AP/TE]">Q51</th>
+<th class="q-header" title="Q52: עד כמה אתה נוטה לעמוד בזמנים בבגרותך: [AP/TE]">Q52</th>
+<th class="q-header" title="Q53: עד כמה היית מסודר או מבולגן בילדותך: [AP/TE]">Q53</th>
+<th class="q-header" title="Q54: עד כמה אתה מסודר או מבולגן בבגרותך: [AP/TE]">Q54</th>
+<th class="q-header" title="Q55: עד כמה היית מאופק או נועז בילדותך: [AE/TP]">Q55</th>
+<th class="q-header" title="Q56: עד כמה אתה מאופק או נועז בבגרותך: [AE/TP]">Q56</th>
+<th class="q-header" title="Q57: דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחות מאפיין אותך [A/E/P/T]">Q57</th>
+<th class="q-header" title="Q58: דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחות מאפיין אותך [A/E/P/T]">Q58</th>
+<th class="q-header" title="Q59: דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחות מאפיין אותך [A/E/P/T]">Q59</th>
+<th class="q-header" title="Q60: דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחות מאפיין אותך [A/E/P/T]">Q60</th>
+<th class="q-header" title="Q61: דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחות מאפיין אותך [A/E/P/T]">Q61</th>
+</tr>
+</thead>
+<tbody>
+<tr data-uid="UID2EE4D3" data-pdn="P10"><td class="user-cell"><span class="pdn-code pdn-P">P10</span> UID2EE4D3 <span style="color:#555;font-weight:normal;">Tomer Gur</span></td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="A:6 T:6">A:6 T:6</td>
+<td class="answer-ranking" title="A:6 T:6">A:6 T:6</td>
+<td class="answer-ranking" title="P:6 E:6">P:6 E:6</td>
+<td class="answer-ranking" title="E:6 P:6">E:6 P:6</td>
+<td class="answer-ranking" title="P:6 E:6">P:6 E:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AP:6 TE:6">AP:6 TE:6</td>
+<td class="answer-ranking" title="AP:6 TE:6">AP:6 TE:6</td>
+<td class="answer-ranking" title="TE:6 AP:6">TE:6 AP:6</td>
+<td class="answer-ranking" title="TE:6 AP:6">TE:6 AP:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="A:4 T:3 E:2 P:1">A:4 T:3 E:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+<td class="answer-ranking" title="E:4 T:3 P:2 A:1">E:4 T:3 P:2 A:1</td>
+<td class="answer-ranking" title="E:4 A:3 P:2 T:1">E:4 A:3 P:2 T:1</td>
+<td class="answer-ranking" title="P:4 E:3 T:2 A:1">P:4 E:3 T:2 A:1</td>
+</tr>
+<tr data-uid="UID4E0A85" data-pdn="A7"><td class="user-cell"><span class="pdn-code pdn-A">A7</span> UID4E0A85 <span style="color:#555;font-weight:normal;">דניאל אדרי</span></td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="T:8 A:4">T:8 A:4</td>
+<td class="answer-ranking" title="A:10 T:2">A:10 T:2</td>
+<td class="answer-ranking" title="E:12 P:0">E:12 P:0</td>
+<td class="answer-ranking" title="P:8 E:4">P:8 E:4</td>
+<td class="answer-ranking" title="E:12 P:0">E:12 P:0</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:6 AP:6">TE:6 AP:6</td>
+<td class="answer-ranking" title="AP:8 TE:4">AP:8 TE:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="T:4 P:3 A:2 E:1">T:4 P:3 A:2 E:1</td>
+<td class="answer-ranking" title="T:4 P:3 E:2 A:1">T:4 P:3 E:2 A:1</td>
+<td class="answer-ranking" title="T:4 A:3 E:2 P:1">T:4 A:3 E:2 P:1</td>
+<td class="answer-pref" title="קופון הטבה/חוויה">קופון הטבה/חוויה</td>
+<td class="answer-pref" title="מקצועיות">מקצועיות</td>
+</tr>
+<tr data-uid="UIDC58366" data-pdn="E5"><td class="user-cell"><span class="pdn-code pdn-E">E5</span> UIDC58366 <span style="color:#555;font-weight:normal;">פנינה E1 מקור</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="A:8 T:4">A:8 T:4</td>
+<td class="answer-ranking" title="A:12 T:0">A:12 T:0</td>
+<td class="answer-ranking" title="E:12 P:0">E:12 P:0</td>
+<td class="answer-ranking" title="E:12 P:0">E:12 P:0</td>
+<td class="answer-ranking" title="E:12 P:0">E:12 P:0</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="T:4 P:3 A:2 E:1">T:4 P:3 A:2 E:1</td>
+<td class="answer-ranking" title="T:4 P:3 A:2 E:1">T:4 P:3 A:2 E:1</td>
+<td class="answer-ranking" title="A:4 P:3 T:2 E:1">A:4 P:3 T:2 E:1</td>
+<td class="answer-ranking" title="T:4 P:3 A:2 E:1">T:4 P:3 A:2 E:1</td>
+<td class="answer-ranking" title="T:4 P:3 A:2 E:1">T:4 P:3 A:2 E:1</td>
+</tr>
+<tr data-uid="UID676751" data-pdn="T8"><td class="user-cell"><span class="pdn-code pdn-T">T8</span> UID676751 <span style="color:#555;font-weight:normal;">פנינה T8 מקור</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="T:12 A:0">T:12 A:0</td>
+<td class="answer-ranking" title="T:12 A:0">T:12 A:0</td>
+<td class="answer-ranking" title="P:8 E:4">P:8 E:4</td>
+<td class="answer-ranking" title="E:8 P:4">E:8 P:4</td>
+<td class="answer-ranking" title="P:10 E:2">P:10 E:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="A:4 E:3 P:2 T:1">A:4 E:3 P:2 T:1</td>
+<td class="answer-ranking" title="A:4 E:3 P:2 T:1">A:4 E:3 P:2 T:1</td>
+<td class="answer-ranking" title="A:4 P:3 E:2 T:1">A:4 P:3 E:2 T:1</td>
+<td class="answer-ranking" title="A:4 P:3 E:2 T:1">A:4 P:3 E:2 T:1</td>
+<td class="answer-ranking" title="A:4 E:3 P:2 T:1">A:4 E:3 P:2 T:1</td>
+</tr>
+<tr data-uid="UID2A3268" data-pdn="P6"><td class="user-cell"><span class="pdn-code pdn-P">P6</span> UID2A3268 <span style="color:#555;font-weight:normal;">פנינה P6 מקור</span></td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="T:8 A:4">T:8 A:4</td>
+<td class="answer-ranking" title="T:8 A:4">T:8 A:4</td>
+<td class="answer-ranking" title="P:8 E:4">P:8 E:4</td>
+<td class="answer-ranking" title="P:10 E:2">P:10 E:2</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="T:4 E:3 A:2 P:1">T:4 E:3 A:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+<td class="answer-ranking" title="T:4 E:3 A:2 P:1">T:4 E:3 A:2 P:1</td>
+<td class="answer-ranking" title="T:4 E:3 A:2 P:1">T:4 E:3 A:2 P:1</td>
+<td class="answer-ranking" title="E:4 T:3 A:2 P:1">E:4 T:3 A:2 P:1</td>
+</tr>
+<tr data-uid="UIDADC2E7" data-pdn="P6"><td class="user-cell"><span class="pdn-code pdn-P">P6</span> UIDADC2E7 <span style="color:#555;font-weight:normal;">שלמה פרידמן</span></td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="A:8 T:4">A:8 T:4</td>
+<td class="answer-ranking" title="T:10 A:2">T:10 A:2</td>
+<td class="answer-ranking" title="P:6 E:6">P:6 E:6</td>
+<td class="answer-ranking" title="P:10 E:2">P:10 E:2</td>
+<td class="answer-ranking" title="E:8 P:4">E:8 P:4</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="TP:12 AE:0">TP:12 AE:0</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:12 AE:0">TP:12 AE:0</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="AP:8 TE:4">AP:8 TE:4</td>
+<td class="answer-ranking" title="AP:12 TE:0">AP:12 TE:0</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="E:4 T:3 A:2 P:1">E:4 T:3 A:2 P:1</td>
+<td class="answer-ranking" title="E:4 T:3 P:2 A:1">E:4 T:3 P:2 A:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+</tr>
+<tr data-uid="UID488009" data-pdn="P10"><td class="user-cell"><span class="pdn-code pdn-P">P10</span> UID488009 <span style="color:#555;font-weight:normal;">Osnat Rabin</span></td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="A:10 T:2">A:10 T:2</td>
+<td class="answer-ranking" title="A:10 T:2">A:10 T:2</td>
+<td class="answer-ranking" title="P:10 E:2">P:10 E:2</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="P:10 E:2">P:10 E:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AP:12 TE:0">AP:12 TE:0</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="T:4 A:3 E:2 P:1">T:4 A:3 E:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+<td class="answer-ranking" title="T:4 E:3 A:2 P:1">T:4 E:3 A:2 P:1</td>
+<td class="answer-ranking" title="T:4 A:3 E:2 P:1">T:4 A:3 E:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+</tr>
+<tr data-uid="UID81A676" data-pdn="P6"><td class="user-cell"><span class="pdn-code pdn-P">P6</span> UID81A676 <span style="color:#555;font-weight:normal;">יזהר ורדינון</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="empty">-</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="A:8 T:4">A:8 T:4</td>
+<td class="answer-ranking" title="T:8 A:4">T:8 A:4</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="E:8 P:4">E:8 P:4</td>
+<td class="answer-ranking" title="E:8 P:4">E:8 P:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="AP:8 TE:4">AP:8 TE:4</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="AP:10 TE:2">AP:10 TE:2</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="E:4 T:3 A:2 P:1">E:4 T:3 A:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+<td class="answer-ranking" title="E:4 T:3 A:2 P:1">E:4 T:3 A:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 P:2 T:1">E:4 A:3 P:2 T:1</td>
+<td class="answer-ranking" title="E:4 T:3 A:2 P:1">E:4 T:3 A:2 P:1</td>
+</tr>
+<tr data-uid="UID7616C2" data-pdn="A7"><td class="user-cell"><span class="pdn-code pdn-A">A7</span> UID7616C2 <span style="color:#555;font-weight:normal;">מאיה קרן</span></td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="empty">-</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="A:6 T:6">A:6 T:6</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="P:10 E:2">P:10 E:2</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="E:12 P:0">E:12 P:0</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AP:8 TE:4">AP:8 TE:4</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="AP:12 TE:0">AP:12 TE:0</td>
+<td class="answer-ranking" title="AP:8 TE:4">AP:8 TE:4</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="T:4 E:3 P:2 A:1">T:4 E:3 P:2 A:1</td>
+<td class="answer-ranking" title="T:4 P:3 E:2 A:1">T:4 P:3 E:2 A:1</td>
+<td class="answer-ranking" title="T:4 E:3 P:2 A:1">T:4 E:3 P:2 A:1</td>
+<td class="answer-ranking" title="T:4 A:3 E:2 P:1">T:4 A:3 E:2 P:1</td>
+<td class="answer-ranking" title="T:4 E:3 A:2 P:1">T:4 E:3 A:2 P:1</td>
+</tr>
+<tr data-uid="UID97BAD7" data-pdn="E1"><td class="user-cell"><span class="pdn-code pdn-E">E1</span> UID97BAD7 <span style="color:#555;font-weight:normal;">אבי אמתי</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="T:10 A:2">T:10 A:2</td>
+<td class="answer-ranking" title="A:6 T:6">A:6 T:6</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AP:12 TE:0">AP:12 TE:0</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="T:4 E:3 A:2 P:1">T:4 E:3 A:2 P:1</td>
+<td class="answer-ranking" title="T:4 E:3 P:2 A:1">T:4 E:3 P:2 A:1</td>
+<td class="answer-ranking" title="T:4 A:3 P:2 E:1">T:4 A:3 P:2 E:1</td>
+<td class="answer-ranking" title="T:4 A:3 E:2 P:1">T:4 A:3 E:2 P:1</td>
+<td class="answer-ranking" title="A:4 P:3 T:2 E:1">A:4 P:3 T:2 E:1</td>
+</tr>
+<tr data-uid="UID3577E1" data-pdn="P10"><td class="user-cell"><span class="pdn-code pdn-P">P10</span> UID3577E1 <span style="color:#555;font-weight:normal;">חגית עשור</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="empty">-</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="T:12 A:0">T:12 A:0</td>
+<td class="answer-ranking" title="E:12 P:0">E:12 P:0</td>
+<td class="answer-ranking" title="E:8 P:4">E:8 P:4</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="TP:12 AE:0">TP:12 AE:0</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="E:4 T:3 P:2 A:1">E:4 T:3 P:2 A:1</td>
+<td class="answer-ranking" title="T:4 P:3 E:2 A:1">T:4 P:3 E:2 A:1</td>
+<td class="answer-ranking" title="E:4 T:3 A:2 P:1">E:4 T:3 A:2 P:1</td>
+<td class="answer-ranking" title="E:4 T:3 P:2 A:1">E:4 T:3 P:2 A:1</td>
+<td class="empty">-</td>
+</tr>
+<tr data-uid="UID4A6703" data-pdn="E5"><td class="user-cell"><span class="pdn-code pdn-E">E5</span> UID4A6703 <span style="color:#555;font-weight:normal;">דני כנען</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="empty">-</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="T:8 A:4">T:8 A:4</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="E:6 P:6">E:6 P:6</td>
+<td class="answer-ranking" title="E:8 P:4">E:8 P:4</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="AP:8 TE:4">AP:8 TE:4</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="T:4 A:3 P:2 E:1">T:4 A:3 P:2 E:1</td>
+<td class="answer-ranking" title="T:4 A:3 E:2 P:1">T:4 A:3 E:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 T:2 P:1">E:4 A:3 T:2 P:1</td>
+<td class="answer-ranking" title="A:4 T:3 E:2 P:1">A:4 T:3 E:2 P:1</td>
+<td class="answer-ranking" title="T:4 E:3 A:2 P:1">T:4 E:3 A:2 P:1</td>
+</tr>
+<tr data-uid="UID302762" data-pdn="T4"><td class="user-cell"><span class="pdn-code pdn-T">T4</span> UID302762 <span style="color:#555;font-weight:normal;">אנה גורן</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="empty">-</td>
+<td class="empty">-</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="empty">-</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="T:12 A:0">T:12 A:0</td>
+<td class="answer-ranking" title="T:12 A:0">T:12 A:0</td>
+<td class="answer-ranking" title="P:10 E:2">P:10 E:2</td>
+<td class="answer-ranking" title="P:12 E:0">P:12 E:0</td>
+<td class="answer-ranking" title="P:10 E:2">P:10 E:2</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:12 AE:0">TP:12 AE:0</td>
+<td class="answer-ranking" title="TP:12 AE:0">TP:12 AE:0</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="TP:12 AE:0">TP:12 AE:0</td>
+<td class="answer-ranking" title="A:4 E:3 T:2 P:1">A:4 E:3 T:2 P:1</td>
+<td class="answer-ranking" title="A:4 E:3 P:2 T:1">A:4 E:3 P:2 T:1</td>
+<td class="answer-ranking" title="E:4 T:3 A:2 P:1">E:4 T:3 A:2 P:1</td>
+<td class="answer-ranking" title="A:4 E:3 P:2 T:1">A:4 E:3 P:2 T:1</td>
+<td class="answer-ranking" title="E:4 A:3 P:2 T:1">E:4 A:3 P:2 T:1</td>
+</tr>
+<tr data-uid="UID6F267C" data-pdn="A7"><td class="user-cell"><span class="pdn-code pdn-A">A7</span> UID6F267C <span style="color:#555;font-weight:normal;">מאיה יעקב</span></td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="empty">-</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 D:2 F:1">S:3 D:2 F:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="A:6 T:6">A:6 T:6</td>
+<td class="answer-ranking" title="A:8 T:4">A:8 T:4</td>
+<td class="answer-ranking" title="P:8 E:4">P:8 E:4</td>
+<td class="answer-ranking" title="P:8 E:4">P:8 E:4</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="empty">-</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AP:8 TE:4">AP:8 TE:4</td>
+<td class="answer-ranking" title="AP:10 TE:2">AP:10 TE:2</td>
+<td class="answer-ranking" title="AP:10 TE:2">AP:10 TE:2</td>
+<td class="answer-ranking" title="AP:10 TE:2">AP:10 TE:2</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="T:4 E:3 P:2 A:1">T:4 E:3 P:2 A:1</td>
+<td class="answer-ranking" title="T:4 E:3 P:2 A:1">T:4 E:3 P:2 A:1</td>
+<td class="answer-ranking" title="T:4 P:3 E:2 A:1">T:4 P:3 E:2 A:1</td>
+<td class="answer-ranking" title="T:4 E:3 P:2 A:1">T:4 E:3 P:2 A:1</td>
+<td class="answer-ranking" title="E:4 T:3 P:2 A:1">E:4 T:3 P:2 A:1</td>
+</tr>
+<tr data-uid="UIDB6B645" data-pdn="E1"><td class="user-cell"><span class="pdn-code pdn-E">E1</span> UIDB6B645 <span style="color:#555;font-weight:normal;">יוחנן דנחי</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="T:12 A:0">T:12 A:0</td>
+<td class="answer-ranking" title="T:10 A:2">T:10 A:2</td>
+<td class="answer-ranking" title="P:6 E:6">P:6 E:6</td>
+<td class="answer-ranking" title="P:12 E:0">P:12 E:0</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="AP:8 TE:4">AP:8 TE:4</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="P:4 A:3 T:2 E:1">P:4 A:3 T:2 E:1</td>
+<td class="answer-ranking" title="T:4 E:3 P:2 A:1">T:4 E:3 P:2 A:1</td>
+<td class="answer-ranking" title="P:4 E:3 T:2 A:1">P:4 E:3 T:2 A:1</td>
+<td class="answer-ranking" title="A:4 T:3 E:2 P:1">A:4 T:3 E:2 P:1</td>
+<td class="answer-ranking" title="A:4 P:3 E:2 T:1">A:4 P:3 E:2 T:1</td>
+</tr>
+<tr data-uid="UID6B103A" data-pdn="T8"><td class="user-cell"><span class="pdn-code pdn-T">T8</span> UID6B103A <span style="color:#555;font-weight:normal;">מיכל לאוב</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="T:10 A:2">T:10 A:2</td>
+<td class="answer-ranking" title="A:6 T:6">A:6 T:6</td>
+<td class="answer-ranking" title="P:8 E:4">P:8 E:4</td>
+<td class="answer-ranking" title="E:8 P:4">E:8 P:4</td>
+<td class="answer-ranking" title="E:8 P:4">E:8 P:4</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:8 AE:4">TP:8 AE:4</td>
+<td class="answer-ranking" title="TP:12 AE:0">TP:12 AE:0</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="TE:8 AP:4">TE:8 AP:4</td>
+<td class="answer-ranking" title="TE:6 AP:6">TE:6 AP:6</td>
+<td class="answer-ranking" title="TE:6 AP:6">TE:6 AP:6</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="TP:10 AE:2">TP:10 AE:2</td>
+<td class="answer-ranking" title="A:4 E:3 T:2 P:1">A:4 E:3 T:2 P:1</td>
+<td class="answer-ranking" title="E:4 A:3 P:2 T:1">E:4 A:3 P:2 T:1</td>
+<td class="answer-ranking" title="A:4 E:3 T:2 P:1">A:4 E:3 T:2 P:1</td>
+<td class="answer-ranking" title="A:4 E:3 P:2 T:1">A:4 E:3 P:2 T:1</td>
+<td class="answer-ranking" title="A:4 E:3 P:2 T:1">A:4 E:3 P:2 T:1</td>
+</tr>
+<tr data-uid="UIDC7C307" data-pdn="E5"><td class="user-cell"><span class="pdn-code pdn-E">E5</span> UIDC7C307 <span style="color:#555;font-weight:normal;">הדס שפלר</span></td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ap" title="AP">AP</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-et" title="ET">ET</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-tp" title="TP">TP</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ae" title="AE">AE</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="D:3 F:2 S:1">D:3 F:2 S:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="F:3 D:2 S:1">F:3 D:2 S:1</td>
+<td class="answer-ranking" title="D:3 S:2 F:1">D:3 S:2 F:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="S:3 F:2 D:1">S:3 F:2 D:1</td>
+<td class="answer-ranking" title="F:3 S:2 D:1">F:3 S:2 D:1</td>
+<td class="answer-ranking" title="T:12 A:0">T:12 A:0</td>
+<td class="answer-ranking" title="A:10 T:2">A:10 T:2</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="E:10 P:2">E:10 P:2</td>
+<td class="answer-ranking" title="E:12 P:0">E:12 P:0</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:10 TP:2">AE:10 TP:2</td>
+<td class="answer-ranking" title="AE:12 TP:0">AE:12 TP:0</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TE:10 AP:2">TE:10 AP:2</td>
+<td class="answer-ranking" title="TE:12 AP:0">TE:12 AP:0</td>
+<td class="answer-ranking" title="TP:6 AE:6">TP:6 AE:6</td>
+<td class="answer-ranking" title="AE:8 TP:4">AE:8 TP:4</td>
+<td class="answer-ranking" title="T:4 A:3 P:2 E:1">T:4 A:3 P:2 E:1</td>
+<td class="answer-ranking" title="T:4 P:3 A:2 E:1">T:4 P:3 A:2 E:1</td>
+<td class="answer-ranking" title="A:4 T:3 P:2 E:1">A:4 T:3 P:2 E:1</td>
+<td class="answer-ranking" title="T:4 P:3 A:2 E:1">T:4 P:3 A:2 E:1</td>
+<td class="answer-ranking" title="P:4 T:3 A:2 E:1">P:4 T:3 A:2 E:1</td>
+</tr>
+</tbody></table></div></div>
+
+<!-- ====== SECTION 2: PDN CODE STATS MATRIX ====== -->
+<div class="section" id="matrix2">
+<h2>2. מטריצת סטטיסטיקה לפי קוד PDN</h2>
+<div class="filter-bar">
+    <label>סנן קוד PDN:</label>
+    <select id="pdnFilter" onchange="filterPdnCodes()">
+        <option value="all" selected>הכל</option>
+<option value="E1">E1 (2 משתמשים)</option>
+<option value="E5">E5 (3 משתמשים)</option>
+<option value="E9">E9 (0 משתמשים)</option>
+<option value="A3">A3 (0 משתמשים)</option>
+<option value="A7">A7 (3 משתמשים)</option>
+<option value="A11">A11 (0 משתמשים)</option>
+<option value="T4">T4 (1 משתמשים)</option>
+<option value="T8">T8 (2 משתמשים)</option>
+<option value="T12">T12 (0 משתמשים)</option>
+<option value="P2">P2 (0 משתמשים)</option>
+<option value="P6">P6 (3 משתמשים)</option>
+<option value="P10">P10 (3 משתמשים)</option>
+    </select>
+    <span class="filter-count" id="pdnCount">מציג 12 קודים</span>
+</div>
+<div class="code-counts">
+<span class="code-badge code-E">E1: 2</span>
+<span class="code-badge code-E">E5: 3</span>
+<span class="code-badge code-E">E9: 0</span>
+<span class="code-badge code-A">A3: 0</span>
+<span class="code-badge code-A">A7: 3</span>
+<span class="code-badge code-A">A11: 0</span>
+<span class="code-badge code-T">T4: 1</span>
+<span class="code-badge code-T">T8: 2</span>
+<span class="code-badge code-T">T12: 0</span>
+<span class="code-badge code-P">P2: 0</span>
+<span class="code-badge code-P">P6: 3</span>
+<span class="code-badge code-P">P10: 3</span>
+</div>
+<div class="table-container">
+<table class="m2" id="pdnTable">
+<thead>
+<tr>
+<th class="q-col">שאלה</th>
+<th class="pdn-col" data-code="E1">E1</th>
+<th class="pdn-col" data-code="E5">E5</th>
+<th class="pdn-col" data-code="E9">E9</th>
+<th class="pdn-col" data-code="A3">A3</th>
+<th class="pdn-col" data-code="A7">A7</th>
+<th class="pdn-col" data-code="A11">A11</th>
+<th class="pdn-col" data-code="T4">T4</th>
+<th class="pdn-col" data-code="T8">T8</th>
+<th class="pdn-col" data-code="T12">T12</th>
+<th class="pdn-col" data-code="P2">P2</th>
+<th class="pdn-col" data-code="P6">P6</th>
+<th class="pdn-col" data-code="P10">P10</th>
+</tr>
+</thead>
+<tbody>
+<tr class="phase-row"><td colspan="13">חלק א - בחירה בינארית (AP/ET, TP/AE)</td></tr>
+<tr><td class="q-cell"><strong>Q1</strong> [AP/ET]<br>כיצד היית מתאר/ת את עצמך ביומיום?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (מאורגן)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (מאורגן)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (בלתי מאורגן)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (מאורגן)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (מאורגן)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:67% (בלתי מאורגן)</span> <span class="stat-label">ET:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:67% (בלתי מאורגן)</span> <span class="stat-label">ET:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q2</strong> [AP/ET]<br>האם אתה נוטה בדרך כלל לפעול בצורה יותר מחושבת או י...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (מחושב)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:67% (מחושב)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (ספונטני)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (מחושב)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (מחושב)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (ספונטני)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:67% (ספונטני)</span> <span class="stat-label">ET:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q3</strong> [AP/ET]<br>האם אתה נוטה להיות יותר אימפולסיבי או יותר שקול?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AP:50% (אימפולסיבי)</span> <span class="stat-label">ET:50%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:50.0%"></div><div class="bar-segment bar-et" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (שקול)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (אימפולסיבי)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (שקול)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (שקול)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (אימפולסיבי)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:100% (אימפולסיבי)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q4</strong> [AP/ET]<br>האם אתה בדרך כלל יותר מרוכז או מוסח בקלות?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (מרוכז)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (מרוכז)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (מוסח בקלות)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (מרוכז)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (מרוכז)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (מוסח בקלות)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">ET:67% (מרוכז)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q5</strong> [AP/ET]<br>האם אתה בדרך כלל מתכנן את היום מראש או זורם עם מה ...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AP:50% (זורם עם מה שמגי)</span> <span class="stat-label">ET:50%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:50.0%"></div><div class="bar-segment bar-et" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (מתכנן מראש)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">ET:100% (מתכנן מראש)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell no-data pdn-col" data-code="T4">-</td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (מתכנן מראש)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:67% (זורם עם מה שמגי)</span> <span class="stat-label">ET:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">ET:67% (מתכנן מראש)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q6</strong> [AP/ET]<br>האם ביומיום אתה נוטה להיות יותר ממוקד משימה או יות...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (ממוקד משימה)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:67% (ממוקד משימה)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (ממוקד אנשים)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell no-data pdn-col" data-code="T4">-</td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (ממוקד משימה)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (ממוקד אנשים)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">ET:67% (ממוקד משימה)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q7</strong> [AP/ET]<br>האם אתה מוצא את עצמך יותר מכבה שריפות או מוכן מראש...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (מוכן מראש)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (מוכן מראש)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:67% (מכבה שריפות)</span> <span class="stat-label">ET:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (מוכן מראש)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (מוכן מראש)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (מכבה שריפות)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:100% (מכבה שריפות)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q8</strong> [AP/ET]<br>האם אתה נוטה להציב גבולות ברורים?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (מציב גבולות)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (מציב גבולות)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (לא מציב גבולות)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (מציב גבולות)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:50% (מציב גבולות)</span> <span class="stat-label">AP:50%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (לא מציב גבולות)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:100% (לא מציב גבולות)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q9</strong> [AP/ET]<br>סגנון הדיבור שלי יותר?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (תכליתי)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:67% (תכליתי)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">ET:50% (תכליתי)</span> <span class="stat-label">AP:50%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (תכליתי)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (תכליתי)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (מרחיב)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">ET:50% (תכליתי)</span> <span class="stat-label">AP:50%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q10</strong> [AP/ET]<br>בדרך כלל אתה נוטה להיות יותר פתוח ומשתף או יותר די...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AP:50% (פתוח ומשתף)</span> <span class="stat-label">ET:50%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:50.0%"></div><div class="bar-segment bar-et" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:50% (דיסקרטי ועניני)</span> <span class="stat-label">AP:50%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (פתוח ומשתף)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">AP:100% (פתוח ומשתף)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (דיסקרטי ועניני)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:67% (פתוח ומשתף)</span> <span class="stat-label">ET:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">ET:50% (דיסקרטי ועניני)</span> <span class="stat-label">AP:50%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q11</strong> [AP/ET]<br>אתה מוצא עצמך בהתנהלות יומיומית: יותר ממוקד או יות...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (יותר ממוקד)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (יותר ממוקד)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (יותר מתפזר)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (יותר ממוקד)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (יותר ממוקד)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (יותר מתפזר)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:100% (יותר מתפזר)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q12</strong> [AP/ET]<br>בשיחה אני יותר: תמציתי וקצר / מרחיב ומשתף</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AP:100% (מרחיב ומשתף)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (תמציתי וקצר)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (מרחיב ומשתף)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell no-data pdn-col" data-code="T4">-</td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:50% (תמציתי וקצר)</span> <span class="stat-label">AP:50%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (מרחיב ומשתף)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:100% (מרחיב ומשתף)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q13</strong> [AP/ET]<br>בהתנהלותי אני יותר:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AP:50% (מאלתר)</span> <span class="stat-label">ET:50%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:50.0%"></div><div class="bar-segment bar-et" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (שיטתי)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">ET:50% (שיטתי)</span> <span class="stat-label">AP:50%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">ET:100% (שיטתי)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:100% (שיטתי)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (מאלתר)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:100% (מאלתר)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q14</strong> [AP/ET]<br>איך אתה נוטה לפעול במצב של חילוקי דעותי:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">ET:100% (נוטה להתדיין)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">ET:100% (נוטה להתדיין)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:67% (נוטה להסכים)</span> <span class="stat-label">ET:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">AP:100% (נוטה להסכים)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">ET:50% (נוטה להתדיין)</span> <span class="stat-label">AP:50%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:100% (נוטה להסכים)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:100% (נוטה להסכים)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q15</strong> [AE/TP]<br>בשיחה אתה נוטה יותר:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:50% (מתערב)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (מתערב)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (מתערב)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מקשיב)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מקשיב)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (מקשיב)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:50% (מתערב)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q16</strong> [AE/TP]<br>האם אתה נוהג לומר את דעתך או להימנע?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (אומר את דעתי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (אומר את דעתי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:67% (אומר את דעתי)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מנסה להימנע)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מנסה להימנע)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (מנסה להימנע)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:67% (מנסה להימנע)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q17</strong> [AE/TP]<br>כשיש קונפליקט אני:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (יותר אסרטיבי, א)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (יותר אסרטיבי, א)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">TP:67% (מנסה להימנע, נס)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מנסה להימנע, נס)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מנסה להימנע, נס)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (מנסה להימנע, נס)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:50% (יותר אסרטיבי, א)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q18</strong> [AE/TP]<br>בדרך כלל אתה יוזם או מצטרף ?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (יוזם)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (יוזם)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:67% (יוזם)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מצטרף)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:50% (מצטרף)</span> <span class="stat-label">AE:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ae" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AE:67% (יוזם)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:50% (יוזם)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q19</strong> [AE/TP]<br>כשמשהו מפריע לך, אתה מבליג או מבטא?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">TP:100% (מבליג)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (מבטא)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (מבטא)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מבליג)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מבליג)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (מבליג)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:50% (מבטא)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q20</strong> [AE/TP]<br>מול אנשים חדשים: מציג עצמך באיפוק או בביטחון</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (מציג עצמי בביטח)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (מציג עצמי בביטח)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (מציג עצמי בביטח)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מציג עצמי באיפו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מציג עצמי באיפו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (מציג עצמי באיפו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:100% (מציג עצמי באיפו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q21</strong> [AE/TP]<br>בדרך כלל בעימות אתה יותר מאופק או יותר מביע את דעת...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (מביע דעתי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (מביע דעתי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (מביע דעתי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מאופק)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מאופק)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (מאופק)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:50% (מביע דעתי)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q22</strong> [AE/TP]<br>התגובה הטבעית שלך כשכועסים עליך בדרך כלל היא:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (להגיב בכעס חזרה)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">TP:67% (להיעלב ולהסתגר)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:50% (להגיב בכעס חזרה)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (להיעלב ולהסתגר)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (להיעלב ולהסתגר)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (להיעלב ולהסתגר)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:100% (להיעלב ולהסתגר)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q23</strong> [AE/TP]<br>בדרך כלל אתה נוטה יותר לקחת פיקוד או להצטרף?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (לוקח פיקוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (לוקח פיקוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:50% (לוקח פיקוד)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מצטרף)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:50% (מצטרף)</span> <span class="stat-label">AE:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ae" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (מצטרף)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:50% (לוקח פיקוד)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q24</strong> [AE/TP]<br>בוויכוח אתה מוצא את עצמך יותר מקבל או יותר מאתגר?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (מאתגר)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (מאתגר)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">TP:67% (מקבל)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מקבל)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מקבל)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (מקבל)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:67% (מאתגר)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q25</strong> [AE/TP]<br>כשאתה נדרש לפתרון מהיר:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:50% (מיד עולה לי רעי)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (מיד עולה לי רעי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (מיד עולה לי רעי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (צריך לשקול קודם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (צריך לשקול קודם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (צריך לשקול קודם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:100% (צריך לשקול קודם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q26</strong> [AE/TP]<br>אני בדרך כלל:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (בטוח בעצמי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (בטוח בעצמי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (בטוח בעצמי)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (זקוק לחיזוק)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (זקוק לחיזוק)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (זקוק לחיזוק)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:67% (זקוק לחיזוק)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr class="phase-row"><td colspan="13">חלק ב - דירוג (D/S/F)</td></tr>
+<tr><td class="q-cell"><strong>Q27</strong> [D/F/S]<br>במהלך היום, כיצד אתה נוטה להתנהל?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">S:50% (פועל בקצב שלי, )</span> <span class="stat-label">F:50%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:50.0%"></div><div class="bar-segment bar-f" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">F:100% (פועל במידת הצור)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:100% (פועל בקצב שלי, )</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">F:100% (פועל במידת הצור)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">F:50% (פועל במידת הצור)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:33% (פועל בקצב שלי, )</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:33.33333333333333%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">S:67% (פועל בקצב שלי, )</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q28</strong> [D/F/S]<br>איך היית מתאר את רמת האנרגיה שלך ביום-יום?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">S:100% (באנרגיה יציבה ו)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">S:67% (באנרגיה יציבה ו)</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">F:67% (משתנה אנרגטית ב)</span> <span class="stat-label">S:33%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:66.66666666666666%"></div><div class="bar-segment bar-s" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">S:100% (באנרגיה יציבה ו)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">F:50% (משתנה אנרגטית ב)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:67% (באנרגיה יציבה ו)</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">S:100% (באנרגיה יציבה ו)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q29</strong> [D/F/S]<br>בדרך כלל, מהי הגישה שלך לגבי פעילויות לאורך היום:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">D:50% (אם אין פעילות -)</span> <span class="stat-label">F:50%</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:50.0%"></div><div class="bar-segment bar-f" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">D:67% (אם אין פעילות -)</span> <span class="stat-label">S:33%</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:66.66666666666666%"></div><div class="bar-segment bar-s" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:100% (עושה הנדרש ונצמ)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">F:100% (זורם לפי הצורך)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">D:100% (אם אין פעילות -)</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">D:67% (אם אין פעילות -)</span> <span class="stat-label">S:33%</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:66.66666666666666%"></div><div class="bar-segment bar-s" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">S:100% (עושה הנדרש ונצמ)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q30</strong> [D/F/S]<br>איך אתה מתנהל עם משימה שעליך לסיים עד מועד מסוים?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">S:50% (מתכנן מראש ודבק)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">S:67% (מתכנן מראש ודבק)</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:100% (מתכנן מראש ודבק)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">D:100% (עבודה אינטנסיבי)</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">F:50% (מתאים בגמישות א)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:67% (מתכנן מראש ודבק)</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">F:33% (מתאים בגמישות א)</span> <span class="stat-label">S:33%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:33.33333333333333%"></div><div class="bar-segment bar-s" style="width:33.33333333333333%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q31</strong> [D/F/S]<br>תחת ריבוי משימות אני מוצא עצמי:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">D:100% (עסוק כל הזמן, ע)</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">S:33% (מעדיף לסיים משי)</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:33.33333333333333%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:100% (מעדיף לסיים משי)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">F:100% (פועל לפי הנדרש,)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">D:100% (עסוק כל הזמן, ע)</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:67% (מעדיף לסיים משי)</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">D:33% (עסוק כל הזמן, ע)</span> <span class="stat-label">S:33%</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:33.33333333333333%"></div><div class="bar-segment bar-s" style="width:33.33333333333333%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q32</strong> [D/F/S]<br>אני מתנהל ביום יום בעיקר:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">S:100% (עובד בקצב יציב )</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">S:67% (עובד בקצב יציב )</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:67% (עובד בקצב יציב )</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">F:100% (פועל כשנדרש, מת)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">F:50% (פועל כשנדרש, מת)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:67% (עובד בקצב יציב )</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">S:67% (עובד בקצב יציב )</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q33</strong> [D/F/S]<br>באפן כללי ניתן להגדיר אותך:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">F:100% (זורם, מתאים עצמ)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">S:50% (פועל בקצב שלי)</span> <span class="stat-label">F:50%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:50.0%"></div><div class="bar-segment bar-f" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">F:50% (זורם, מתאים עצמ)</span> <span class="stat-label">S:50%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:50.0%"></div><div class="bar-segment bar-s" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">S:100% (פועל בקצב שלי)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">F:50% (זורם, מתאים עצמ)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:67% (פועל בקצב שלי)</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">F:100% (זורם, מתאים עצמ)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q34</strong> [D/F/S]<br>ביום עמוס במיוחד אני:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">S:50% (משתדל להתמיד בת)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">D:67% (מגביר קצב עוד י)</span> <span class="stat-label">S:33%</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:66.66666666666666%"></div><div class="bar-segment bar-s" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:100% (משתדל להתמיד בת)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">S:100% (משתדל להתמיד בת)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">D:100% (מגביר קצב עוד י)</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:100% (משתדל להתמיד בת)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">S:67% (משתדל להתמיד בת)</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q35</strong> [D/F/S]<br>איך אתה מתאר את קצב העבודה שלך ?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">S:50% (קצב עקבי ויציב )</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">S:67% (קצב עקבי ויציב )</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:67% (קצב עקבי ויציב )</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">F:100% (קצב משתנה בהתאם)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">D:100% (קצב מהיר דינמי )</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:67% (קצב עקבי ויציב )</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">S:67% (קצב עקבי ויציב )</span> <span class="stat-label">D:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-d" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q36</strong> [D/F/S]<br>בדרך כלל אני:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">D:100% (פועל בצורה  מהי)</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">S:67% (פועל בצורה מובנ)</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:100% (פועל בצורה מובנ)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">F:100% (פועל בצורה גמיש)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">D:100% (פועל בצורה  מהי)</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">S:100% (פועל בצורה מובנ)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">D:50% (פועל בצורה  מהי)</span> <span class="stat-label">S:50%</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:50.0%"></div><div class="bar-segment bar-s" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q37</strong> [D/F/S]<br>איך אתה מתנהל עם ארוחות היום:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">S:50% (אוכל בזמנים קבו)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">F:67% (אוכל כשרעב, אין)</span> <span class="stat-label">S:33%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:66.66666666666666%"></div><div class="bar-segment bar-s" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">S:100% (אוכל בזמנים קבו)</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">F:100% (אוכל כשרעב, אין)</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">F:50% (אוכל כשרעב, אין)</span> <span class="stat-label">D:50%</span><div class="stat-bar"><div class="bar-segment bar-f" style="width:50.0%"></div><div class="bar-segment bar-d" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">D:67% (אוכל על הדרך, ל)</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-d" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">S:67% (אוכל בזמנים קבו)</span> <span class="stat-label">F:33%</span><div class="stat-bar"><div class="bar-segment bar-s" style="width:66.66666666666666%"></div><div class="bar-segment bar-f" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr class="phase-row"><td colspan="13">חלק ג - סולם (A/T, P/E)</td></tr>
+<tr><td class="q-cell"><strong>Q38</strong> [A/T]<br>באיזו מידה אתה נוטה לבדוק לעומק לפני נטילת סיכון?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">T:100% (מוודא כל פרט)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">T:67% (מוודא כל פרט)</span> <span class="stat-label">A:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">A:67% (לא מוודא כלל)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">T:100% (מוודא כל פרט)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">T:100% (מוודא כל פרט)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">A:67% (לא מוודא כלל)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">A:100% (לא מוודא כלל)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q39</strong> [A/T]<br>עד כמה קשה לך להסתדר עם מצבי חוסר ודאות?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">A:50% (לא מתקשה כלל)</span> <span class="stat-label">T:50%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">A:100% (לא מתקשה כלל)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">A:100% (לא מתקשה כלל)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">T:100% (מתקשה מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">T:50% (מתקשה מאוד)</span> <span class="stat-label">A:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">T:100% (מתקשה מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">A:67% (לא מתקשה כלל)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q40</strong> [E/P]<br>באיזו מידה אתה מקבל החלטות במהירות באופן כללי?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">P:100% (מתקשה להחליט)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">E:100% (מקבל החלטות במה)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">P:67% (מתקשה להחליט)</span> <span class="stat-label">E:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">P:100% (מתקשה להחליט)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">P:100% (מתקשה להחליט)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">P:67% (מתקשה להחליט)</span> <span class="stat-label">E:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">P:67% (מתקשה להחליט)</span> <span class="stat-label">E:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q41</strong> [E/P]<br>האם קשה לך לקבל הנחיות והובלה מאחרים?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">P:100% (אין לי קושי כלל)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">E:100% (קשה לי מאוד שמו)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">P:67% (אין לי קושי כלל)</span> <span class="stat-label">E:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">P:100% (אין לי קושי כלל)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">E:100% (קשה לי מאוד שמו)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">P:67% (אין לי קושי כלל)</span> <span class="stat-label">E:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">E:100% (קשה לי מאוד שמו)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q42</strong> [E/P]<br>עד כמה אתה מרגיש נוח להוביל אחרים כשאין הנהגה ברור...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">E:100% (לוקח הובלה בלי )</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">E:100% (לוקח הובלה בלי )</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">E:100% (לוקח הובלה בלי )</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">P:100% (מעדיף להישאר בצ)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">P:50% (מעדיף להישאר בצ)</span> <span class="stat-label">E:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-et" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">E:100% (לוקח הובלה בלי )</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">P:100% (מעדיף להישאר בצ)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+</tr>
+<tr class="phase-row"><td colspan="13">חלק ד - ילדות/בגרות (TP/AE, AP/TE)</td></tr>
+<tr><td class="q-cell"><strong>Q43</strong> [AE/TP]<br>כיצד היית מגדיר את עצמך בילדותך מבחינת מוחצנות או ...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (מוחצן מאוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">TP:67% (מופנם מאוד)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (מוחצן מאוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell no-data pdn-col" data-code="T4">-</td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מופנם מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (מופנם מאוד)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:100% (מופנם מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q44</strong> [AE/TP]<br>כיצד היית מגדיר את עצמך בבגרותך מבחינת מוחצנות או ...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (מוחצן מאוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">TP:67% (מופנם מאוד)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (מוחצן מאוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מופנם מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מופנם מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AE:67% (מוחצן מאוד)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:100% (מופנם מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q45</strong> [AE/TP]<br>נקד בשתי האופציות בילדות את הרמה שלך להנהגה / הצטר...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (לוקח פיקוד, מוב)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (לוקח פיקוד, מוב)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:50% (לוקח פיקוד, מוב)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מצטרף לא יוזם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מצטרף לא יוזם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (מצטרף לא יוזם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:67% (מצטרף לא יוזם)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q46</strong> [AE/TP]<br>נקד בשתי האופציות בבגרות את הרמה שלך להנהגה / הצטר...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (לוקח פיקוד, מוב)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (לוקח פיקוד, מוב)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:50% (לוקח פיקוד, מוב)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מצטרף לא יוזם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:50% (מצטרף לא יוזם)</span> <span class="stat-label">AE:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ae" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (מצטרף לא יוזם)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:50% (מצטרף לא יוזם)</span> <span class="stat-label">AE:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ae" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q47</strong> [AE/TP]<br>עד כמה נטית לדבר או להקשיב בשקט בילדותך?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (דברן, ללא עקבות)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:67% (דברן, ללא עקבות)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (דברן, ללא עקבות)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (שתקן, יותר מתבו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (שתקן, יותר מתבו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (שתקן, יותר מתבו)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:100% (שתקן, יותר מתבו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q48</strong> [AE/TP]<br>עד כמה אתה נוטה לדבר או להקשיב בשקט בבגרותך?</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:50% (דברן, ללא עקבות)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:67% (דברן, ללא עקבות)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:67% (דברן, ללא עקבות)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (שתקן, יותר מתבו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (שתקן, יותר מתבו)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (שתקן, יותר מתבו)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:67% (דברן, ללא עקבות)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q49</strong> [AE/TP]<br>נקד בשתי האופציות בילדות את הרמה שלך לעימותים / לר...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (עומד על דעתי, ל)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (עומד על דעתי, ל)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">TP:67% (בורח מעימותים, )</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell no-data pdn-col" data-code="T4">-</td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (בורח מעימותים, )</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (בורח מעימותים, )</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:100% (בורח מעימותים, )</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q50</strong> [AE/TP]<br>נקד בשתי האופציות בבגרות את הרמה שלך לעימותים / לר...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:50% (עומד על דעתי, ל)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (עומד על דעתי, ל)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">TP:67% (בורח מעימותים, )</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (בורח מעימותים, )</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (בורח מעימותים, )</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:100% (בורח מעימותים, )</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:50% (בורח מעימותים, )</span> <span class="stat-label">AE:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ae" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q51</strong> [AP/TE]<br>עד כמה הקפדת לעמוד בזמנים בילדותך:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">TE:100% (מדויק מאוד, עומ)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">TE:100% (מדויק מאוד, עומ)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:67% (לא מקפיד, מאחר )</span> <span class="stat-label">TE:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-other" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell no-data pdn-col" data-code="T4">-</td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TE:100% (מדויק מאוד, עומ)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TE:67% (מדויק מאוד, עומ)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:67% (לא מקפיד, מאחר )</span> <span class="stat-label">TE:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-other" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q52</strong> [AP/TE]<br>עד כמה אתה נוטה לעמוד בזמנים בבגרותך:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">TE:100% (מדויק מאוד, עומ)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">TE:100% (מדויק מאוד, עומ)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">TE:67% (מדויק מאוד, עומ)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TE:100% (מדויק מאוד, עומ)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TE:100% (מדויק מאוד, עומ)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TE:67% (מדויק מאוד, עומ)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AP:50% (לא מקפיד, מאחר )</span> <span class="stat-label">TE:50%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:50.0%"></div><div class="bar-segment bar-other" style="width:50.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q53</strong> [AP/TE]<br>עד כמה היית מסודר או מבולגן בילדותך:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AP:100% (מבולגן תמיד)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:67% (מבולגן תמיד)</span> <span class="stat-label">TE:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-other" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">AP:67% (מבולגן תמיד)</span> <span class="stat-label">TE:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-other" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q54</strong> [AP/TE]<br>עד כמה אתה מסודר או מבולגן בבגרותך:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">TE:67% (מסודר מאוד)</span> <span class="stat-label">AP:33%</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AP:100% (מבולגן תמיד)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TE:100% (מסודר מאוד)</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:100.0%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q55</strong> [AE/TP]<br>עד כמה היית מאופק או נועז בילדותך:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:100% (נועז מאוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">TP:67% (מאופק מאוד)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (נועז מאוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell no-data pdn-col" data-code="T4">-</td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מאופק מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (מאופק מאוד)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">AE:67% (נועז מאוד)</span> <span class="stat-label">TP:33%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q56</strong> [AE/TP]<br>עד כמה אתה מאופק או נועז בבגרותך:</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">AE:50% (נועז מאוד)</span> <span class="stat-label">TP:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-tp" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">AE:100% (נועז מאוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">AE:100% (נועז מאוד)</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">TP:100% (מאופק מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">TP:100% (מאופק מאוד)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">TP:67% (מאופק מאוד)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">TP:67% (מאופק מאוד)</span> <span class="stat-label">AE:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr class="phase-row"><td colspan="13">חלק ה - דירוג 4 (E/P/T/A)</td></tr>
+<tr><td class="q-cell"><strong>Q57</strong> [A/E/P/T]<br>דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחו...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">T:50% (שיטתי, זהיר, מת)</span> <span class="stat-label">P:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ae" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">T:100% (שיטתי, זהיר, מת)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">T:100% (שיטתי, זהיר, מת)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">A:100% (שופע רעיונות, מ)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">A:100% (שופע רעיונות, מ)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">E:67% (אסרטיבי, ממוקד )</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">A:33% (שופע רעיונות, מ)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q58</strong> [A/E/P/T]<br>דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחו...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">T:100% (זהיר, בודק לעומ)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">T:100% (זהיר, בודק לעומ)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">T:100% (זהיר, בודק לעומ)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">A:100% (מאמין ביכולותיו)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">A:50% (מאמין ביכולותיו)</span> <span class="stat-label">E:50%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:50.0%"></div><div class="bar-segment bar-et" style="width:50.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">E:100% (אוהב להוביל, או)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">E:67% (אוהב להוביל, או)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q59</strong> [A/E/P/T]<br>דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחו...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">T:50% (שקול, מכין תוכנ)</span> <span class="stat-label">P:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ae" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">A:67% (מציע פתרונות, מ)</span> <span class="stat-label">E:33%</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:66.66666666666666%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">T:100% (שקול, מכין תוכנ)</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">E:100% (מנהיג, אסרטיבי,)</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">A:100% (מציע פתרונות, מ)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">E:67% (מנהיג, אסרטיבי,)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">E:67% (מנהיג, אסרטיבי,)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q60</strong> [A/E/P/T]<br>דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחו...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">T:50% (מדויק, מסודר, א)</span> <span class="stat-label">A:50%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:50.0%"></div><div class="bar-segment bar-ap" style="width:50.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">T:67% (מדויק, מסודר, א)</span> <span class="stat-label">A:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ap" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">T:67% (מדויק, מסודר, א)</span> <span class="stat-label">קופון הטבה/חוויה:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-other" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">A:100% (השגי, תקשורתי, )</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">A:100% (השגי, תקשורתי, )</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">E:67% (מוביל, החלטי, א)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">E:67% (מוביל, החלטי, א)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:66.66666666666666%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div></div></td>
+</tr>
+<tr><td class="q-cell"><strong>Q61</strong> [A/E/P/T]<br>דרג את המשפטים לפי מה שהכי מאפיין אותך למה הכי פחו...</td>
+<td class="stat-cell pdn-col" data-code="E1"><span class="dominant">A:100% (לפעמים מתפזר בי)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="E5"><span class="dominant">T:67% (לעיתים דואג יות)</span> <span class="stat-label">P:33%</span><div class="stat-bar"><div class="bar-segment bar-tp" style="width:66.66666666666666%"></div><div class="bar-segment bar-ae" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="E9">-</td>
+<td class="stat-cell no-data pdn-col" data-code="A3">-</td>
+<td class="stat-cell pdn-col" data-code="A7"><span class="dominant">מקצועיות:33% (מקצועיות)</span> <span class="stat-label">T:33%</span><div class="stat-bar"><div class="bar-segment bar-other" style="width:33.33333333333333%"></div><div class="bar-segment bar-tp" style="width:33.33333333333333%"></div><div class="bar-segment bar-et" style="width:33.33333333333333%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="A11">-</td>
+<td class="stat-cell pdn-col" data-code="T4"><span class="dominant">E:100% (לעיתים קצר רוח )</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="T8"><span class="dominant">A:100% (לפעמים מתפזר בי)</span><div class="stat-bar"><div class="bar-segment bar-ap" style="width:100.0%"></div></div></td>
+<td class="stat-cell no-data pdn-col" data-code="T12">-</td>
+<td class="stat-cell no-data pdn-col" data-code="P2">-</td>
+<td class="stat-cell pdn-col" data-code="P6"><span class="dominant">E:100% (לעיתים קצר רוח )</span><div class="stat-bar"><div class="bar-segment bar-et" style="width:100.0%"></div></div></td>
+<td class="stat-cell pdn-col" data-code="P10"><span class="dominant">P:50% (לעיתים מתקשה לה)</span> <span class="stat-label">E:50%</span><div class="stat-bar"><div class="bar-segment bar-ae" style="width:50.0%"></div><div class="bar-segment bar-et" style="width:50.0%"></div></div></td>
+</tr>
+</tbody></table></div></div>
+
+
+<script>
+function filterUsers() {
+    const filter = document.getElementById('userFilter').value;
+    const rows = document.querySelectorAll('#userTable tbody tr');
+    let visible = 0;
+    rows.forEach(row => {
+        if (filter === 'all') {
+            row.classList.remove('hidden');
+            visible++;
+        } else {
+            const uid = row.getAttribute('data-uid');
+            if (uid === filter) {
+                row.classList.remove('hidden');
+                visible++;
+            } else {
+                row.classList.add('hidden');
+            }
+        }
+    });
+    document.getElementById('userCount').textContent = 'מציג ' + visible + ' משתמשים';
+}
+
+function filterPdnCodes() {
+    const filter = document.getElementById('pdnFilter').value;
+    const headerCells = document.querySelectorAll('#pdnTable thead th.pdn-col');
+    const bodyCells = document.querySelectorAll('#pdnTable tbody td.pdn-col');
+    let visible = 0;
+
+    headerCells.forEach(th => {
+        const code = th.getAttribute('data-code');
+        if (filter === 'all' || code === filter) {
+            th.style.display = '';
+            visible++;
+        } else {
+            th.style.display = 'none';
+        }
+    });
+
+    bodyCells.forEach(td => {
+        const code = td.getAttribute('data-code');
+        if (filter === 'all' || code === filter) {
+            td.style.display = '';
+        } else {
+            td.style.display = 'none';
+        }
+    });
+
+    document.getElementById('pdnCount').textContent = 'מציג ' + (filter === 'all' ? '12' : '1') + ' קודים';
+}
+</script>
+</body>
+</html>

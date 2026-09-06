@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מדריך בדיקה מהיר - פנינה</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            line-height: 1.7;
+            padding: 32px 20px;
+        }
+        .container { max-width: 860px; margin: 0 auto; }
+        h1 { font-size: 1.8rem; font-weight: 800; color: #0b2e6b; margin-bottom: 4px; }
+        .subtitle { font-size: 0.9rem; color: #64748b; margin-bottom: 32px; }
+        h2 {
+            font-size: 1.25rem; font-weight: 700; color: #0b2e6b;
+            margin: 36px 0 14px; padding-bottom: 6px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        h3 { font-size: 1rem; font-weight: 700; color: #334155; margin: 20px 0 10px; }
+        p { margin-bottom: 10px; font-size: 0.92rem; }
+
+        /* Decision cards */
+        .decision-card {
+            background: white; border-radius: 12px; padding: 20px; margin: 14px 0;
+            border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .decision-card.green { border-right: 5px solid #16a34a; }
+        .decision-card.yellow { border-right: 5px solid #f59e0b; }
+        .decision-card.red { border-right: 5px solid #dc2626; }
+        .decision-card .card-title {
+            font-weight: 700; font-size: 1rem; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .decision-card.green .card-title { color: #166534; }
+        .decision-card.yellow .card-title { color: #92400e; }
+        .decision-card.red .card-title { color: #991b1b; }
+
+        .badge {
+            display: inline-block; padding: 2px 10px; border-radius: 12px;
+            font-size: 0.75rem; font-weight: 600;
+        }
+        .badge-green { background: #dcfce7; color: #166534; }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+
+        /* Flowchart */
+        .flow-step {
+            display: flex; align-items: flex-start; gap: 14px;
+            margin: 12px 0; padding: 14px 16px;
+            background: white; border-radius: 10px; border: 1px solid #e2e8f0;
+        }
+        .flow-step .step-num {
+            min-width: 28px; height: 28px; border-radius: 50%;
+            background: #0b2e6b; color: white; display: flex;
+            align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.8rem; flex-shrink: 0;
+        }
+        .flow-step .step-content { flex: 1; }
+        .flow-step .step-content strong { color: #0b2e6b; }
+
+        /* Quick ref table */
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; }
+        th {
+            background: #f1f5f9; color: #475569; font-weight: 600;
+            padding: 10px 12px; text-align: right; border-bottom: 2px solid #e2e8f0;
+        }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+        tr:hover { background: #f8fafc; }
+
+        /* Voice guide */
+        .voice-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0;
+        }
+        .voice-item {
+            background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;
+        }
+        .voice-item .trait {
+            font-size: 1.2rem; font-weight: 800; color: #0b2e6b; margin-bottom: 6px;
+        }
+        .voice-item ul { padding-right: 16px; margin: 0; }
+        .voice-item li { font-size: 0.82rem; margin-bottom: 3px; color: #475569; }
+
+        /* Energy guide */
+        .energy-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 12px 0;
+        }
+        .energy-item {
+            background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; text-align: center;
+        }
+        .energy-item .letter {
+            font-size: 1.5rem; font-weight: 800; color: #0b2e6b; margin-bottom: 4px;
+        }
+        .energy-item .name { font-size: 0.8rem; color: #64748b; margin-bottom: 8px; }
+        .energy-item .signs { text-align: right; font-size: 0.82rem; color: #475569; }
+
+        /* Checklist */
+        .checklist { list-style: none; padding: 0; margin: 10px 0; }
+        .checklist li {
+            padding: 8px 12px; margin: 4px 0; border-radius: 6px;
+            background: #f8fafc; font-size: 0.88rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .checklist li::before {
+            content: ''; width: 16px; height: 16px; border-radius: 4px;
+            border: 2px solid #cbd5e1; flex-shrink: 0;
+        }
+
+        .highlight-box {
+            background: #fffbeb; border: 1px solid #f59e0b; border-radius: 10px;
+            padding: 16px; margin: 14px 0;
+        }
+        .highlight-box p { margin-bottom: 6px; }
+
+        .separator { height: 1px; background: #e2e8f0; margin: 32px 0; }
+
+        @media print {
+            body { padding: 20px; }
+            .decision-card, .flow-step, .voice-item, .energy-item { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>מדריך בדיקה מהיר</h1>
+        <p class="subtitle">כלי החלטה למאבחנת - מתי לאשר, מתי לבדוק, ומה לשאול בשיחה</p>
+
+        <!-- Section 1: When to Approve Without a Call -->
+        <h2>1. מתי לאשר בלי שיחה</h2>
+
+        <div class="decision-card green">
+            <div class="card-title">אישור מיידי - לא צריך שיחה</div>
+            <p>ניתן לאשר את הקוד ללא שיחה כאשר <strong>כל</strong> התנאים הבאים מתקיימים:</p>
+            <ul class="checklist">
+                <li>ציון ביטחון מעל 50%</li>
+                <li>פער תכונות מעל 5 נקודות</li>
+                <li>אין היפוך בשלב E (שלב 5 לא שינה תוצאה)</li>
+                <li>הקול תואם את התכונה (ראה סעיף 5)</li>
+                <li>אם יש קוד מאבחן קודם - הוא זהה לקוד המערכת</li>
+            </ul>
+        </div>
+
+        <div class="decision-card yellow">
+            <div class="card-title">לבדיקה מהירה - 2 דקות</div>
+            <p>צריך בדיקה קצרה (בלי שיחה מלאה) כאשר:</p>
+            <ul class="checklist">
+                <li>ציון ביטחון 30-50% - תכונה ברורה אבל אנרגיה קרובה</li>
+                <li>פער תכונות 3-5 נקודות - סביר אבל לא חזק</li>
+                <li>שלב E חיזק את הדומיננטית (לא שינה)</li>
+            </ul>
+            <p><strong>מה לעשות:</strong> האזנה להקלטה (30 שניות) + בדיקת האנרגיה לפי קצב הדיבור</p>
+        </div>
+
+        <div class="decision-card red">
+            <div class="card-title">שקול שיחה - מומלץ לא לאשר בלי</div>
+            <p>מצבים שדורשים שיחה אישית:</p>
+            <ul class="checklist">
+                <li>שלב E הפך את התוצאה (תכונה שונתה)</li>
+                <li>ציון ביטחון מתחת ל-10%</li>
+                <li>פער תכונות 0-2 נקודות (שוויון כמעט מושלם)</li>
+                <li>שלב E חסר (שאלות 57-60 לא נענו)</li>
+                <li>הקול סותר את התכונה בצורה ברורה</li>
+            </ul>
+        </div>
+
+        <!-- Section 2: Flowchart -->
+        <h2>2. תהליך בדיקה - צעד אחר צעד</h2>
+
+        <div class="flow-step">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                <strong>בדוק ציון ביטחון</strong><br>
+                מעל 50% → עבור לשלב 3<br>
+                מתחת ל-50% → המשך לשלב 2
+            </div>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                <strong>בדוק את הדגלים</strong><br>
+                שלב E הפך? → שקול שיחה<br>
+                שלב E חסר? → שקול שיחה<br>
+                רק פער קטן? → המשך לשלב 3
+            </div>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <strong>האזן להקלטה (30 שניות)</strong><br>
+                קצב מהיר, אנרגטי → A או E<br>
+                קצב מדוד, רגוע → T<br>
+                קצב זורם, משתנה → P<br>
+                <em>התואם לתכונה שהמערכת קבעה?</em>
+            </div>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-num">4</div>
+            <div class="step-content">
+                <strong>בדוק אנרגיה (רק אם פער קטן)</strong><br>
+                אם הפער בין D ל-F הוא 1-2 נקודות:<br>
+                - דיבור ישיר ומוחלט → D<br>
+                - דיבור גמיש ומתפתל → F<br>
+                אם הפער בין S לשאר קטן: בדוק עקביות ושגרה בתשובות
+            </div>
+        </div>
+
+        <div class="flow-step">
+            <div class="step-num">5</div>
+            <div class="step-content">
+                <strong>החלטה</strong><br>
+                הכל תואם → אשר את קוד המערכת<br>
+                הקול סותר → שנה לקוד שמתאים לקול + סמן בהערות<br>
+                לא בטוחה → קבע שיחה
+            </div>
+        </div>
+
+        <!-- Section 3: Red Flags -->
+        <h2>3. דגלים אדומים - דפוסים שכמעט תמיד טעות</h2>
+
+        <table>
+            <thead>
+                <tr><th>הדפוס</th><th>מה קורה</th><th>מה לעשות</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge badge-red">שלב E הפך A→E</span></td>
+                    <td>שלבים 1-4 אמרו A, אבל הדירוג העצמי בשלב 5 הכריע E</td>
+                    <td>בדוק אם הנבדק "רוצה להיות E" או שהוא באמת E. שאל על מנהיגות בפועל מול הישגים</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-red">שלב E הפך P→T</span></td>
+                    <td>שלבים 1-4 אמרו P, הדירוג העצמי אמר T</td>
+                    <td>שאל על פחדים: פחד מהתחייבויות (P) מול פחד מעימותים (T). הפחד הדומיננטי קובע</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-yellow">A/E שוויון + אנרגיה D</span></td>
+                    <td>תכונות A ו-E כמעט זהות, אנרגיה דינמית</td>
+                    <td>שניהם מובילים. שאל: "האם אתה מניע אחרים (E) או מניע את עצמך (A)?"</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-yellow">P/T שוויון + אנרגיה S</span></td>
+                    <td>P ו-T כמעט זהות, אנרגיה יציבה</td>
+                    <td>שאל על שגרה: "מה עדיף - שגרה נוחה ומהנה (P) או שגרה בטוחה ומוגנת (T)?"</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-yellow">D/F פער 1 נקודה</span></td>
+                    <td>הבעיה הכי נפוצה - אנרגיה לא ברורה</td>
+                    <td>ראה סעיף 6 - שאלות אבחנה מהירות</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Section 4: Stage E Override Guide -->
+        <h2>4. מתי שלב E צודק ומתי טועה</h2>
+
+        <div class="decision-card yellow">
+            <div class="card-title">שלב E בדרך כלל צודק כאשר:</div>
+            <ul class="checklist">
+                <li>הפער בשלבים A-D היה קטן (2-4 נקודות) - לא הייתה הכרעה חזקה</li>
+                <li>הנבדק דירג את עצמו בעקביות (כל 5 השאלות באותו כיוון)</li>
+                <li>הקול תואם את הדירוג העצמי ולא את שלבי A-D</li>
+                <li>בילדות הנבדק היה יותר דומה לדירוג העצמי</li>
+            </ul>
+        </div>
+
+        <div class="decision-card yellow">
+            <div class="card-title">שלב E בדרך כלל טועה כאשר:</div>
+            <ul class="checklist">
+                <li>הפער בשלבים A-D היה גדול (מעל 6 נקודות) - הייתה הכרעה ברורה</li>
+                <li>הנבדק דירג לא עקבי (שאלה 1 → E, שאלה 2 → A, שאלה 3 → P)</li>
+                <li>הנבדק "רוצה להיות" משהו מסוים (אידאל מול מציאות)</li>
+                <li>הקול ושפת הגוף סותרים את הדירוג העצמי</li>
+            </ul>
+        </div>
+
+        <!-- Section 5: Voice Analysis -->
+        <h2>5. זיהוי תכונה לפי קול</h2>
+
+        <div class="voice-grid">
+            <div class="voice-item">
+                <div class="trait">A - הישגיות</div>
+                <ul>
+                    <li>קצב דיבור מהיר עד מהיר מאוד</li>
+                    <li>ישיר, תכליתי, לא מרבה במילים</li>
+                    <li>אנרגיה גבוהה ועקבית</li>
+                    <li>ממוקד בפעולה - "עשיתי", "השגתי"</li>
+                    <li>חוסר סבלנות לפרטים מיותרים</li>
+                </ul>
+            </div>
+            <div class="voice-item">
+                <div class="trait">E - אדנות</div>
+                <ul>
+                    <li>קצב מדוד אך סמכותי</li>
+                    <li>טון עמוק, משדר ביטחון</li>
+                    <li>משפטים ארוכים ומורכבים</li>
+                    <li>שימוש ב"אנחנו", "הצוות שלי"</li>
+                    <li>נוטה להסביר ולהנחות</li>
+                </ul>
+            </div>
+            <div class="voice-item">
+                <div class="trait">T - ביטחון</div>
+                <ul>
+                    <li>קצב איטי עד בינוני</li>
+                    <li>מדוד, זהיר, חושב לפני שעונה</li>
+                    <li>שקט, לא צועק</li>
+                    <li>"אני צריך לחשוב על זה"</li>
+                    <li>נמנע מקיצוניות בתשובות</li>
+                </ul>
+            </div>
+            <div class="voice-item">
+                <div class="trait">P - הנאה</div>
+                <ul>
+                    <li>קצב משתנה - עולה ויורד</li>
+                    <li>טון חם, מחייך</li>
+                    <li>סיפורים ודוגמאות</li>
+                    <li>"זה היה כיף", "אני אוהב/ת"</li>
+                    <li>קופץ בין נושאים</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <p><strong>כלל אצבע:</strong> אם תוך 10 שניות האזנה אתה מזהה את הקצב - סומך על זה. הקול לא משקר.</p>
+            <p>A ו-E מהירים ואנרגטיים. ההבדל: A ממוקד בעצמו, E ממוקד באחרים.</p>
+            <p>T ו-P שקטים יותר. ההבדל: T מדוד ועקבי, P משתנה וזורם.</p>
+        </div>
+
+        <!-- Section 6: Energy Disambiguation -->
+        <h2>6. אבחנת אנרגיה - כשהפער קטן</h2>
+
+        <div class="energy-grid">
+            <div class="energy-item">
+                <div class="letter">D</div>
+                <div class="name">דינמית</div>
+                <div class="signs">
+                    <p>מוביל, יוזם, מחליט מהר</p>
+                    <p>"אני פשוט עושה"</p>
+                    <p>לא מפחד מעימותים</p>
+                    <p>חסר סבלנות לתהליכים</p>
+                </div>
+            </div>
+            <div class="energy-item">
+                <div class="letter">S</div>
+                <div class="name">יציבה</div>
+                <div class="signs">
+                    <p>אוהב שגרה, עקבי</p>
+                    <p>"אני מעדיף תוכנית"</p>
+                    <p>נאמן, לא משנה בקלות</p>
+                    <p>מתקשה עם שינויים פתאומיים</p>
+                </div>
+            </div>
+            <div class="energy-item">
+                <div class="letter">F</div>
+                <div class="name">גמישה</div>
+                <div class="signs">
+                    <p>מסתגל, זורם, גמיש</p>
+                    <p>"תלוי במצב הרוח"</p>
+                    <p>אוהב גיוון ושינוי</p>
+                    <p>מתקשה עם שגרה קבועה</p>
+                </div>
+            </div>
+        </div>
+
+        <h3>שאלות אבחנה מהירות לשיחה (D מול F)</h3>
+        <table>
+            <thead>
+                <tr><th>שאלה</th><th>תשובת D</th><th>תשובת F</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>"כשמשהו לא עובד, מה אתה עושה?"</td>
+                    <td>"פותר מיד, מחליט ועובר הלאה"</td>
+                    <td>"מנסה כיוון אחר, מחפש אופציות"</td>
+                </tr>
+                <tr>
+                    <td>"איך אתה מגיב לשינויים לא צפויים?"</td>
+                    <td>"מתמודד ישירות, לא נבהל"</td>
+                    <td>"מסתגל בקלות, אפילו נהנה מזה"</td>
+                </tr>
+                <tr>
+                    <td>"מה חשוב לך יותר - שליטה או חופש?"</td>
+                    <td>"שליטה - אני רוצה להוביל"</td>
+                    <td>"חופש - אני רוצה אפשרויות"</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>שאלות אבחנה מהירות (S מול D)</h3>
+        <table>
+            <thead>
+                <tr><th>שאלה</th><th>תשובת S</th><th>תשובת D</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>"מה עדיף - יציבות ארוכת טווח או התקדמות מהירה?"</td>
+                    <td>"יציבות, אני אוהב לדעת מה הולך לקרות"</td>
+                    <td>"התקדמות, אני לא נשאר במקום"</td>
+                </tr>
+                <tr>
+                    <td>"איך היית מתאר את קצב החיים שלך?"</td>
+                    <td>"קבוע, מאורגן, צפוי"</td>
+                    <td>"מהיר, אינטנסיבי, דוחף קדימה"</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Section 7: Quick Codes Ref -->
+        <h2>7. טבלת קודים מהירה</h2>
+        <table>
+            <thead>
+                <tr><th>קוד</th><th>תכונה + אנרגיה</th><th>מילת מפתח</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>A3</strong></td><td>A + F (הישגי + גמיש)</td><td>יזם גמיש, מרובה פרויקטים</td></tr>
+                <tr><td><strong>A7</strong></td><td>A + D (הישגי + דינמי)</td><td>מנהל דוחף, ממוקד מטרה</td></tr>
+                <tr><td><strong>A11</strong></td><td>A + S (הישגי + יציב)</td><td>הישגי שיטתי, לונג-ראן</td></tr>
+                <tr><td><strong>T4</strong></td><td>T + D (ביטחון + דינמי)</td><td>מגן, שומר על הסביבה</td></tr>
+                <tr><td><strong>T8</strong></td><td>T + S (ביטחון + יציב)</td><td>שמרן, אוהב סדר ושגרה</td></tr>
+                <tr><td><strong>T12</strong></td><td>T + F (ביטחון + גמיש)</td><td>זהיר אבל מסתגל</td></tr>
+                <tr><td><strong>P2</strong></td><td>P + S (הנאה + יציב)</td><td>נהנתן בשגרה, סיפוק קבוע</td></tr>
+                <tr><td><strong>P6</strong></td><td>P + F (הנאה + גמיש)</td><td>חופשי, יצירתי, מגוון</td></tr>
+                <tr><td><strong>P10</strong></td><td>P + D (הנאה + דינמי)</td><td>מוביל חברתי, אנרגטי</td></tr>
+                <tr><td><strong>E1</strong></td><td>E + D (אדנות + דינמי)</td><td>מנהיג דומיננטי, כוח</td></tr>
+                <tr><td><strong>E5</strong></td><td>E + S (אדנות + יציב)</td><td>מנהיג שקט, השפעה מאחורי הקלעים</td></tr>
+                <tr><td><strong>E9</strong></td><td>E + F (אדנות + גמיש)</td><td>מנהיג גמיש, מלהיב, חזון</td></tr>
+            </tbody>
+        </table>
+
+        <!-- Section 8: Time-Saving Tips -->
+        <h2>8. טיפים לחיסכון בזמן</h2>
+
+        <div class="decision-card green">
+            <div class="card-title">80% מהמקרים - אישור תוך 30 שניות</div>
+            <p>רוב המקרים שהציון מעל 50% עם תכונה ברורה לא צריכים בדיקה מעמיקה. תסתכלי על:</p>
+            <ol style="padding-right: 20px; margin: 8px 0; font-size: 0.88rem;">
+                <li>ציון ביטחון - מעל 50%?</li>
+                <li>פער תכונות - מעל 5?</li>
+                <li>אין דגלים אדומים?</li>
+            </ol>
+            <p>אם כן - אשרי ותעברי הלאה.</p>
+        </div>
+
+        <div class="decision-card yellow">
+            <div class="card-title">15% מהמקרים - בדיקה מהירה 2 דקות</div>
+            <p>אנרגיה קרובה אבל תכונה ברורה? מספיק להאזין 30 שניות ולבדוק אם הקול תואם. לא צריך שיחה מלאה.</p>
+        </div>
+
+        <div class="decision-card red">
+            <div class="card-title">5% מהמקרים - שיחה מלאה</div>
+            <p>רק מקרים עם היפוך שלב E או שוויון מוחלט בתכונות דורשים שיחה של 10-15 דקות.</p>
+        </div>
+
+        <div class="separator"></div>
+        <p style="text-align:center;color:#94a3b8;font-size:0.8rem;">מדריך פנימי | עודכן יוני 2026</p>
+    </div>
+</body>
+</html>

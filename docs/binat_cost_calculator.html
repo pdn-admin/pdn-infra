@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון עלויות - בינת קוד המקור</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f4f8;
+    color: #1e293b;
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+
+  .page-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: #0b2e6b;
+    margin-bottom: 6px;
+  }
+
+  .page-sub {
+    text-align: center;
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 28px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0b2e6b;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .inputs-grid { grid-template-columns: 1fr; }
+  }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+
+  .field input[type="number"],
+  .field select {
+    width: 100%;
+    padding: 11px 14px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+    background: #fafafa;
+    color: #1e293b;
+  }
+
+  .field input[type="number"]:focus,
+  .field select:focus {
+    border-color: #0b2e6b;
+    background: white;
+  }
+
+  .field .hint {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 5px;
+  }
+
+  .slider-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .slider-wrap input[type="range"] {
+    flex: 1;
+    height: 6px;
+    accent-color: #0b2e6b;
+    cursor: pointer;
+  }
+
+  .slider-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0b2e6b;
+    min-width: 36px;
+    text-align: center;
+  }
+
+  /* Model selector */
+  .model-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 600px) {
+    .model-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .model-card {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    background: #fafafa;
+  }
+
+  .model-card:hover {
+    border-color: #4a7ab5;
+    background: #f0f4ff;
+  }
+
+  .model-card.selected {
+    border-color: #0b2e6b;
+    background: #eef2ff;
+  }
+
+  .model-card .model-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0b2e6b;
+    margin-bottom: 4px;
+  }
+
+  .model-card .model-price {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .model-card .model-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+
+  .badge-current { background: #dbeafe; color: #1e40af; }
+  .badge-best    { background: #dcfce7; color: #166534; }
+  .badge-cheap   { background: #fef3c7; color: #92400e; }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 600px) {
+    .results-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .kpi {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 14px;
+    text-align: center;
+  }
+
+  .kpi-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0b2e6b;
+    line-height: 1.1;
+    margin-bottom: 5px;
+  }
+
+  .kpi-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .kpi.highlight {
+    background: linear-gradient(135deg, #0b2e6b, #1a3f7a);
+    border-color: transparent;
+  }
+
+  .kpi.highlight .kpi-value { color: white; }
+  .kpi.highlight .kpi-label { color: #a5b4fc; }
+
+  /* Breakdown table */
+  .breakdown {
+    background: #f8fafc;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 20px;
+  }
+
+  .breakdown table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .breakdown thead th {
+    background: #0b2e6b;
+    color: white;
+    padding: 10px 14px;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .breakdown tbody tr:nth-child(even) { background: white; }
+  .breakdown tbody tr:nth-child(odd)  { background: #f8fafc; }
+
+  .breakdown tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid #e8ecf4;
+    color: #374151;
+  }
+
+  .breakdown tfoot td {
+    padding: 10px 14px;
+    font-weight: 700;
+    color: #0b2e6b;
+    background: #eef2ff;
+    border-top: 2px solid #c7d2fe;
+  }
+
+  /* Cache savings notice */
+  .cache-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #ecfdf5;
+    border: 1px solid #86efac;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: #166534;
+    line-height: 1.6;
+  }
+
+  .cache-notice .icon { font-size: 16px; flex-shrink: 0; }
+
+  /* Comparison bar chart */
+  .compare-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 14px;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .bar-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    min-width: 130px;
+    text-align: right;
+  }
+
+  .bar-track {
+    flex: 1;
+    background: #e2e8f0;
+    border-radius: 6px;
+    height: 20px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.4s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-left: 8px;
+  }
+
+  .bar-amount {
+    font-size: 11px;
+    font-weight: 700;
+    color: #374151;
+    min-width: 52px;
+    text-align: left;
+  }
+
+  /* Note section */
+  .notes {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.7;
+    padding-top: 10px;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .notes strong { color: #374151; }
+</style>
+</head>
+<body>
+
+<div class="page-title">מחשבון עלויות - בינת קוד המקור</div>
+<div class="page-sub">הערכת עלות Claude API לפי מספר שאלות, ימים ומודל</div>
+
+<!-- Inputs -->
+<div class="card">
+  <div class="card-title">
+    <span>&#9881;</span> הגדרות
+  </div>
+
+  <div class="inputs-grid" style="margin-bottom: 24px;">
+
+    <div class="field">
+      <label>מספר הודעות ביום (קריאות API)</label>
+      <div class="slider-wrap">
+        <input type="range" id="questionsPerDay" min="1" max="200" value="20"
+               oninput="updateSlider('questionsPerDay','qpdVal'); recalc()">
+        <span class="slider-val" id="qpdVal">20</span>
+      </div>
+      <div class="hint">כל הודעה = קריאה אחת ל-API. שיחה שלמה = מספר הודעות.</div>
+    </div>
+
+    <div class="field">
+      <label>מספר ימים</label>
+      <div class="slider-wrap">
+        <input type="range" id="numDays" min="1" max="365" value="30"
+               oninput="updateSlider('numDays','daysVal'); recalc()">
+        <span class="slider-val" id="daysVal">30</span>
+      </div>
+      <div class="hint">אורך התקופה לחישוב</div>
+    </div>
+
+    <div class="field">
+      <label>הודעות לשיחה (ממוצע)</label>
+      <div class="slider-wrap">
+        <input type="range" id="turnsPerConv" min="2" max="20" value="8"
+               oninput="updateSlider('turnsPerConv','turnsVal'); recalc()">
+        <span class="slider-val" id="turnsVal">8</span>
+      </div>
+      <div class="hint">מספע ממוצע של הודעות בשיחה אחת. משמש לחישוב cache-writes. אין נתון מדוד - 8 הוא הנחת עבודה.</div>
+    </div>
+
+    <div class="field">
+      <label>prompt caching</label>
+      <select id="cachingOn" onchange="recalc()">
+        <option value="1">פעיל (ברירת מחדל - 90% הנחה על system prompt)</option>
+        <option value="0">כבוי (ללא cache)</option>
+      </select>
+      <div class="hint">המערכת כבר משתמשת ב-Anthropic cache_control</div>
+    </div>
+
+  </div>
+
+  <!-- Model selector -->
+  <div class="field">
+    <label style="margin-bottom: 12px; display: block;">בחר מודל Claude</label>
+    <div class="model-grid" id="modelGrid">
+
+      <div class="model-card selected" data-model="sonnet4" onclick="selectModel(this)">
+        <div class="model-name">Sonnet 4 / 4.5 / 4.6</div>
+        <div class="model-price">input: $3 / M<br>output: $15 / M<br>cache: $0.30 / M</div>
+        <span class="model-badge badge-current">נוכחי</span>
+      </div>
+
+      <div class="model-card" data-model="sonnet5" onclick="selectModel(this)">
+        <div class="model-name">Sonnet 5</div>
+        <div class="model-price">input: $2 / M<br>output: $10 / M<br>cache: $0.20 / M</div>
+        <span class="model-badge badge-best">חדש - מומלץ</span>
+      </div>
+
+      <div class="model-card" data-model="haiku45" onclick="selectModel(this)">
+        <div class="model-name">Haiku 4.5</div>
+        <div class="model-price">input: $1 / M<br>output: $5 / M<br>cache: $0.10 / M</div>
+        <span class="model-badge badge-cheap">הכי זול</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="card">
+  <div class="card-title">
+    <span>&#128200;</span> תוצאות חישוב
+  </div>
+
+  <div class="results-grid">
+    <div class="kpi highlight">
+      <div class="kpi-value" id="totalCost">$0.00</div>
+      <div class="kpi-label">עלות כוללת לתקופה</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value" id="monthCost">$0.00</div>
+      <div class="kpi-label">עלות לחודש (30 יום)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value" id="perConvCost">$0.000</div>
+      <div class="kpi-label">עלות להודעה בודדת</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-value" id="totalCalls">0</div>
+      <div class="kpi-label">סה"כ קריאות API</div>
+    </div>
+  </div>
+
+  <!-- Breakdown table -->
+  <div class="breakdown">
+    <table>
+      <thead>
+        <tr>
+          <th>רכיב</th>
+          <th>טוקנים לקריאה</th>
+          <th>סה"כ טוקנים</th>
+          <th>עלות</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>System prompt (uncached)</td>
+          <td id="bSysTokens">-</td>
+          <td id="bSysTotal">-</td>
+          <td id="bSysCost">-</td>
+        </tr>
+        <tr>
+          <td>System prompt (cache read)</td>
+          <td id="bCacheTokens">-</td>
+          <td id="bCacheTotal">-</td>
+          <td id="bCacheCost">-</td>
+        </tr>
+        <tr>
+          <td>User message + history</td>
+          <td id="bUserTokens">-</td>
+          <td id="bUserTotal">-</td>
+          <td id="bUserCost">-</td>
+        </tr>
+        <tr>
+          <td>תשובות (output)</td>
+          <td id="bOutTokens">-</td>
+          <td id="bOutTotal">-</td>
+          <td id="bOutCost">-</td>
+        </tr>
+        <tr>
+          <td>Summarization (Haiku 4.5)</td>
+          <td id="bSumTokens">-</td>
+          <td id="bSumTotal">-</td>
+          <td id="bSumCost">-</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3">סה"כ</td>
+          <td id="bTotalCost">$0.00</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Cache savings -->
+  <div class="cache-notice" id="cacheNotice">
+    <span class="icon">&#9889;</span>
+    <span id="cacheText">-</span>
+  </div>
+</div>
+
+<!-- Model comparison -->
+<div class="card">
+  <div class="card-title">
+    <span>&#9878;</span> השוואת מודלים - אותו עומס
+  </div>
+
+  <div class="compare-title" id="compareTitle">-</div>
+
+  <div id="compareChart"></div>
+
+  <div class="notes" id="notesSection">-</div>
+</div>
+
+<script>
+  // ---- Token constants (from real token_usage.json data) ----
+  const TOKENS = {
+    systemPrompt: 2600,    // binat_agent + {code}.prompt + guardrails (chars/3)
+    cacheWrite: 2600,      // first call writes the cache
+    cacheRead: 2100,       // subsequent calls read from cache (~80% of calls)
+    userMsg: 700,          // user message + context wrapper + history
+    output: 215,           // average response (~150 words in Hebrew)
+    summaryInput: 500,     // tokens per summarization call
+    summaryOutput: 300,    // compressed summary output
+  };
+
+  // Summarization: every MAX_TURNS_BEFORE_SUMMARY (6) turns triggers one Haiku call
+  const TURNS_BEFORE_SUMMARY = 6;
+
+  // ---- Pricing ----
+  const PRICING = {
+    sonnet4:  { input: 3.0,  output: 15.0,  cacheRead: 0.30, cacheWrite: 3.75,  label: 'Claude Sonnet 4 / 4.5 / 4.6' },
+    sonnet5:  { input: 2.0,  output: 10.0,  cacheRead: 0.20, cacheWrite: 2.50,  label: 'Claude Sonnet 5' },
+    haiku45:  { input: 1.0,  output: 5.0,   cacheRead: 0.10, cacheWrite: 1.25,  label: 'Claude Haiku 4.5' },
+  };
+
+  // Haiku 4.5 pricing for summarization (always uses cheap model)
+  const HAIKU_PRICING = PRICING.haiku45;
+
+  let selectedModel = 'sonnet4';
+
+  function updateSlider(sliderId, valId) {
+    document.getElementById(valId).textContent = document.getElementById(sliderId).value;
+  }
+
+  function selectModel(el) {
+    document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedModel = el.dataset.model;
+    recalc();
+  }
+
+  function fmt(n, decimals) {
+    return n.toFixed(decimals !== undefined ? decimals : 4);
+  }
+
+  function fmtDollar(n) {
+    if (n < 0.01) return '$' + n.toFixed(4);
+    if (n < 1)    return '$' + n.toFixed(3);
+    return '$' + n.toFixed(2);
+  }
+
+  function fmtK(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return n.toString();
+  }
+
+  function calcCost(p, model) {
+    // p = pricing object, model = { input, output, cacheRead, cacheWrite, label }
+    return (
+      (p.uncachedInput  / 1e6) * model.input       +
+      (p.cacheWriteT    / 1e6) * model.cacheWrite   +
+      (p.cacheReadT     / 1e6) * model.cacheRead    +
+      (p.outputT        / 1e6) * model.output
+    );
+  }
+
+  function buildPayload(calls, turns, cachingOn) {
+    // First call per session writes the cache (once per user conversation session)
+    // Subsequent turns read from cache. Estimate: 1 cache-write per conversation session.
+    const sessions = calls / Math.max(turns, 1);         // each session = one conversation
+    const cacheWriteCalls = cachingOn ? sessions : 0;
+    const cacheReadCalls  = cachingOn ? (calls - sessions) : 0;
+    const uncachedCalls   = cachingOn ? 0 : calls;        // no caching = all uncached
+
+    return {
+      uncachedInput:  (uncachedCalls * TOKENS.systemPrompt) + (calls * TOKENS.userMsg),
+      cacheWriteT:    cacheWriteCalls * TOKENS.cacheWrite,
+      cacheReadT:     cacheReadCalls  * TOKENS.cacheRead,
+      outputT:        calls * TOKENS.output,
+    };
+  }
+
+  function recalc() {
+    const questionsPerDay = parseInt(document.getElementById('questionsPerDay').value);
+    const numDays         = parseInt(document.getElementById('numDays').value);
+    const turnsPerConv    = parseInt(document.getElementById('turnsPerConv').value);
+    const cachingOn       = parseInt(document.getElementById('cachingOn').value);
+    const model           = PRICING[selectedModel];
+
+    const totalConversations = Math.ceil((questionsPerDay * numDays) / turnsPerConv);
+    const totalCalls         = questionsPerDay * numDays;
+
+    const payload = buildPayload(totalCalls, turnsPerConv, cachingOn);
+
+    // Summarization calls: once per TURNS_BEFORE_SUMMARY turns, per conversation
+    const summCalls        = Math.floor(totalCalls / TURNS_BEFORE_SUMMARY);
+    const summCost = (
+      (summCalls * (TOKENS.summaryInput  / 1e6)) * HAIKU_PRICING.input  +
+      (summCalls * (TOKENS.summaryOutput / 1e6)) * HAIKU_PRICING.output
+    );
+
+    const mainCost = calcCost(payload, model);
+    const totalCost = mainCost + summCost;
+    const perConv   = totalCalls > 0 ? totalCost / totalCalls : 0;
+    const monthCost = numDays > 0 ? (totalCost / numDays) * 30 : 0;
+
+    // Update KPIs
+    document.getElementById('totalCost').textContent  = fmtDollar(totalCost);
+    document.getElementById('monthCost').textContent  = fmtDollar(monthCost);
+    document.getElementById('perConvCost').textContent = fmtDollar(perConv);
+    document.getElementById('totalCalls').textContent = fmtK(totalCalls);
+
+    // Update breakdown table
+    const sessions = totalCalls / Math.max(turnsPerConv, 1);
+    const cacheWriteCalls = cachingOn ? sessions : 0;
+    const cacheReadCalls  = cachingOn ? (totalCalls - sessions) : 0;
+
+    const bSysCost   = ((cacheWriteCalls * TOKENS.systemPrompt + (cachingOn ? 0 : totalCalls * TOKENS.systemPrompt)) / 1e6) * model.input;
+    const bCacheCost = (cacheReadCalls * TOKENS.cacheRead / 1e6) * model.cacheRead;
+    const bUserCost  = (totalCalls * TOKENS.userMsg / 1e6) * model.input;
+    const bOutCost   = (totalCalls * TOKENS.output  / 1e6) * model.output;
+
+    set('bSysTokens',  fmtK(cachingOn ? TOKENS.systemPrompt : TOKENS.systemPrompt) + ' / קריאה (write)');
+    set('bSysTotal',   fmtK(Math.round(cacheWriteCalls * TOKENS.systemPrompt)));
+    set('bSysCost',    fmtDollar(bSysCost));
+
+    set('bCacheTokens', cachingOn ? fmtK(TOKENS.cacheRead) + ' / קריאה' : '—');
+    set('bCacheTotal',  cachingOn ? fmtK(Math.round(cacheReadCalls * TOKENS.cacheRead)) : '—');
+    set('bCacheCost',   cachingOn ? fmtDollar(bCacheCost) : '—');
+
+    set('bUserTokens',  fmtK(TOKENS.userMsg) + ' / קריאה');
+    set('bUserTotal',   fmtK(totalCalls * TOKENS.userMsg));
+    set('bUserCost',    fmtDollar(bUserCost));
+
+    set('bOutTokens',   fmtK(TOKENS.output) + ' / קריאה');
+    set('bOutTotal',    fmtK(totalCalls * TOKENS.output));
+    set('bOutCost',     fmtDollar(bOutCost));
+
+    const summTotal = summCalls * (TOKENS.summaryInput + TOKENS.summaryOutput);
+    set('bSumTokens',  fmtK(TOKENS.summaryInput + TOKENS.summaryOutput) + ' / קריאה (Haiku)');
+    set('bSumTotal',   fmtK(summTotal));
+    set('bSumCost',    fmtDollar(summCost));
+
+    set('bTotalCost', fmtDollar(totalCost));
+
+    // Cache savings notice
+    if (cachingOn) {
+      const withoutCache = (totalCalls * TOKENS.systemPrompt / 1e6) * model.input;
+      const withCache    = bSysCost + bCacheCost;
+      const saving       = withoutCache - withCache;
+      const savingPct    = withoutCache > 0 ? ((saving / withoutCache) * 100).toFixed(0) : 0;
+      set('cacheText',
+        `Prompt caching חוסך ${fmtDollar(saving)} (${savingPct}%) על ה-system prompt. ` +
+        `ללא caching העלות הכוללת היתה ${fmtDollar(totalCost + saving)}.`
+      );
+    } else {
+      set('cacheText', 'Prompt caching כבוי - המערכת שולחת את ה-system prompt המלא בכל קריאה.');
+    }
+
+    // Model comparison
+    const allModels = Object.entries(PRICING).map(([key, p]) => {
+      const pl = buildPayload(totalCalls, turnsPerConv, cachingOn);
+      const cost = calcCost(pl, p) + summCost;
+      return { key, label: p.label, cost };
+    });
+
+    const maxCost = Math.max(...allModels.map(m => m.cost));
+    const colors  = { sonnet4: '#4a7ab5', sonnet5: '#0b2e6b', haiku45: '#f59e0b' };
+
+    set('compareTitle',
+      `השוואת עלות עבור ${fmtK(totalCalls)} הודעות (${fmtK(totalConversations)} שיחות)`
+    );
+
+    const chart = allModels
+      .sort((a, b) => b.cost - a.cost)
+      .map(m => {
+        const pct = maxCost > 0 ? (m.cost / maxCost) * 100 : 0;
+        const isSelected = m.key === selectedModel;
+        return `
+          <div class="bar-row">
+            <div class="bar-label" style="${isSelected ? 'font-weight:800;color:#0b2e6b;' : ''}">${m.label}${isSelected ? ' &#10003;' : ''}</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${Math.max(pct,2)}%;background:${colors[m.key] || '#94a3b8'};">
+              </div>
+            </div>
+            <div class="bar-amount" style="${isSelected ? 'font-weight:800;color:#0b2e6b;' : ''}">
+              ${fmtDollar(m.cost)}
+            </div>
+          </div>
+        `;
+      }).join('');
+    document.getElementById('compareChart').innerHTML = chart;
+
+    // Notes
+    const cheapest = allModels.sort((a, b) => a.cost - b.cost)[0];
+    const current  = allModels.find(m => m.key === selectedModel);
+    const saving100conv = (current && cheapest.key !== selectedModel)
+      ? fmtDollar((current.cost - cheapest.cost) / totalConversations * 100)
+      : null;
+
+    const noteLines = [
+      `<strong>נתוני בסיס:</strong> מהנתונים האמיתיים של token_usage.json - ממוצע ${TOKENS.systemPrompt.toLocaleString()} טוקן system prompt, ${TOKENS.userMsg} טוקן user message, ${TOKENS.output} טוקן output.`,
+      `<strong>Haiku</strong> משמש תמיד לסיכומי שיחה (summarization) - ללא קשר למודל הראשי.`,
+      saving100conv
+        ? `<strong>חיסכון אפשרי:</strong> מעבר ל-${cheapest.label} יחסוך ${saving100conv} לכל 100 שיחות.`
+        : `<strong>כבר בוחרים במודל הזול ביותר.</strong>`,
+      `<strong>Sonnet 5 מחיר:</strong> $2/$10 - הפך לקבוע ב-11 באוגוסט 2026.`,
+      `<strong>Sonnet 4 / 4.5 / 4.6:</strong> $3/$15 - המחיר הסטנדרטי.`,
+    ];
+
+    set('notesSection', noteLines.join('<br>'));
+  }
+
+  function set(id, html) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  }
+
+  // Init
+  recalc();
+</script>
+</body>
+</html>

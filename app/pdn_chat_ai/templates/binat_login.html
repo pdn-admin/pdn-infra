@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <title>בינת קוד המקור - התחברות</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-login.css') }}">
+</head>
+<body>
+<!-- Theme toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="החלף ערכת נושא" aria-label="החלף ערכת נושא">
+    <i class="fas fa-moon"></i>
+</button>
+
+<!-- Main container -->
+<div class="container mx-auto p-6 max-w-4xl">
+    <div class="login-container">
+        <div class="text-center mb-8">
+            <a href="https://www.pdn.co.il" target="_blank" style="display: inline-block; margin-bottom: 12px;">
+                <img src="{{ url_for('static', filename='images/pdn_logo.png') }}" alt="PDN Logo"
+                     style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(201, 169, 110, 0.25);">
+            </a>
+            <h2 class="login-heading">ברוך הבא לבינת קוד המקור</h2>
+            <p class="login-subheading">התחבר כדי להתחיל את המסע שלך</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username" class="form-label">
+                    <i class="fas fa-envelope"></i>
+                    אימייל
+                </label>
+                <input type="email" id="username" name="email" required
+                       class="form-input"
+                       placeholder="הזן כתובת אימייל"
+                       autocomplete="email">
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i>
+                    סיסמה
+                </label>
+                <div style="position:relative;">
+                    <input type="password" id="password" name="password" required
+                           class="form-input"
+                           placeholder="הזן סיסמה"
+                           autocomplete="current-password"
+                           maxlength="50"
+                           style="padding-left:40px;">
+                    <button type="button"
+                            onclick="toggleBinatPassword()"
+                            tabindex="-1"
+                            title="הצג/הסתר סיסמה"
+                            style="position:absolute;left:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;padding:0;line-height:1;">
+                        <i id="binatEyeIcon" class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="terms-row">
+                <input type="checkbox" id="termsCheckbox" class="terms-checkbox">
+                <label for="termsCheckbox" class="terms-label">
+                    קראתי והבנתי את
+                    <button type="button" class="terms-link" onclick="openTermsModal()">תנאי השימוש וההסכמה המודעת</button>
+                    ואני מסכים/ה להם
+                </label>
+            </div>
+
+            <div id="termsError" class="terms-error" role="alert" style="display:none;">
+                <i class="fas fa-exclamation-circle"></i>
+                יש לאשר את תנאי השימוש כדי להמשיך
+            </div>
+
+            <button type="submit" id="submitButton" class="submit-button" disabled>
+                התחל שיחה עם בינת קוד המקור
+            </button>
+        </form>
+
+        <!-- Terms Modal -->
+        <div id="termsModal" class="terms-modal-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-label="תנאי שימוש">
+            <div class="terms-modal-box">
+                <div class="terms-modal-header">
+                    <h3>הסכמה מודעת למסע עם קוד המקור</h3>
+                    <button type="button" class="terms-modal-close" onclick="closeTermsModal()" aria-label="סגור">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="terms-modal-body">
+                    <p>המסע עם קוד המקור נועד לעורר תודעה, לאפשר גילוי עצמי, ולהאיר כיוונים פנימיים. הוא לא מחליף ייעוץ או טיפול מקצועי - רגשי, רפואי או אחר - ואינו מתיימר לאבחן או לרפא.</p>
+                    <p>האבחון והליווי דרך קוד המקור מזמינים אותך להתבונן, להקשיב לעצמך, ולבחור איך לפעול. האחריות על הדרך, הבחירות וההשלכות - היא שלך בלבד.</p>
+                    <p>אם עולה קושי רגשי עמוק, מצוקה מתמשכת או צורך בתמיכה - חשוב לפנות לאיש מקצוע מתאים.</p>
+                    <p class="terms-emphasis">אנחנו כאן להזכיר - שהכוח כבר בתוכך.</p>
+                </div>
+                <div class="terms-modal-footer">
+                    <button type="button" class="terms-accept-btn" onclick="acceptTermsFromModal()">
+                        <i class="fas fa-check"></i>
+                        קראתי ומסכים/ה
+                    </button>
+                    <button type="button" class="terms-cancel-btn" onclick="closeTermsModal()">
+                        סגור
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loginError" class="error-message" role="alert">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>אנא הזן אימייל וסיסמה תקינים</span>
+        </div>
+
+        <!-- Footer -->
+        {% include 'partials/footer.html' %}
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/binat-login.js') }}"></script>
+</body>
+</html>

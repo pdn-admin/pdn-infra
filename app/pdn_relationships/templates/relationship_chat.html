@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; img-src 'self' data:; connect-src 'self';">
+    <title>בינת מערכות יחסים - שיחה</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/binat-chat.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+</head>
+<body>
+
+<!-- Floating Action Menu -->
+<div class="fab-menu" id="fabMenu">
+    <button class="fab-toggle" id="fabToggle" onclick="toggleFabMenu()" title="תפריט" aria-label="תפריט פעולות">
+        <i class="fas fa-ellipsis-v" id="fabIcon"></i>
+    </button>
+    <div class="fab-dropdown" id="fabDropdown">
+        <button class="fab-item" onclick="exportAsText(); closeFabMenu();">
+            <i class="fas fa-download"></i> ייצוא שיחה
+        </button>
+        <button class="fab-item" onclick="showBookmarks(); closeFabMenu();">
+            <i class="fas fa-bookmark"></i> הודעות שמורות
+        </button>
+        <button class="fab-item" onclick="toggleChatTheme(); closeFabMenu();">
+            <i class="fas fa-moon" id="fabThemeIcon"></i> <span id="fabThemeText">מצב כהה</span>
+        </button>
+        <button class="fab-item danger" onclick="handleThankYouClick(); closeFabMenu();">
+            <i class="fas fa-sign-out-alt"></i> סיים שיחה
+        </button>
+    </div>
+</div>
+<div class="container mx-auto p-6 max-w-4xl">
+  <div class="chat-wrapper">
+    <div class="chat-container" id="chatContainer">
+        <!-- Chat messages will be inserted here -->
+    </div>
+
+    <!-- Scroll to bottom button -->
+    <button id="scrollToBottomBtn" class="scroll-to-bottom-btn hidden" onclick="scrollToBottom(true)" aria-label="גלול למטה">
+        <i class="fas fa-chevron-down"></i> הודעות חדשות
+    </button>
+
+    <div class="chat-divider"></div>
+
+    <!-- Enhanced input area -->
+    <div class="input-area">
+        <textarea id="userInput"
+               placeholder="כתוב/י עכשיו... (Shift+Enter לשורה חדשה)"
+               lang="he-IL"
+               onkeydown="handleKeyPress(event)"
+               oninput="autoResizeTextarea(this)"
+               rows="3"
+               aria-label="הודעת טקסט"></textarea>
+
+        <div class="input-buttons">
+            <button class="send-button" onclick="toggleSendStop()" id="sendBtn" aria-label="שלח הודעה">
+                <i class="fas fa-paper-plane"></i> שלח
+            </button>
+
+            <button class="action-button" onclick="toggleMicrophone()" title="הקלטה קולית" id="micBtn"
+                    aria-label="הקלטה קולית">
+                <i class="fas fa-microphone"></i> <span id="micBtnText">הקלטה</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="chat-divider"></div>
+
+    <!-- Footer - minimal -->
+    <div style="padding: 12px 24px; text-align: center;">
+        <p style="font-size: 11px; color: #8a8279; margin: 0;">&copy; 2025 PDN Center</p>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Confirmation Modal -->
+<div class="confirmation-modal" id="confirmationModal">
+    <div class="confirmation-content">
+        <h3 class="confirmation-title">סיים שיחה</h3>
+        <p class="confirmation-message">האם אתה בטוח שברצונך לסיים את השיחה ולחזור לדף ההתחברות?</p>
+        <p class="confirmation-message">שים לב: השיחה לא תישמר. אם ברצונך לשמור את תוכן השיחה, אנא ייצא אותה לפני
+            היציאה.</p>
+        <div class="confirmation-buttons">
+            <button class="confirmation-btn cancel" onclick="hideConfirmationModal()">
+                <i class="fas fa-times"></i>
+                ביטול
+            </button>
+            <button class="confirmation-btn confirm" onclick="confirmLogout()">
+                <i class="fas fa-check"></i>
+                אישור
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Pass Jinja2 template variables to the external JS file
+    const USER_NAME = "{{ user_name }}";
+    const USER_ID = "{{ user_name }}";
+    const PDN_CODE = "{{ pdn_code }}";
+    const PARTNER_CODE = "{{ partner_code }}";
+    const RELATIONSHIP_TYPE = "{{ relationship_type }}";
+
+    // Relationship-specific labels
+    const RELATIONSHIP_LABELS = {
+        "partner": "בן/בת זוג",
+        "friend": "חבר/ה",
+        "colleague": "עמית/ה לעבודה"
+    };
+
+    // Namespace localStorage keys to avoid collision with binat chat
+    const STORAGE_PREFIX = "relationships";
+
+    // Override the chat endpoint and logout behavior for relationship module
+    const CHAT_ENDPOINT = "/pdn-relationships/chat";
+    const LOGOUT_ENDPOINT = "/pdn-relationships/logout";
+    const LOGIN_PAGE = "/pdn-relationships/";
+    const BOT_NAME = "בינת מערכות יחסים";
+</script>
+<script src="{{ url_for('static', filename='js/binat-chat.js') }}"></script>
+
+<!-- Override the fetch call and logout to use relationship endpoints -->
+<script>
+    // Override processMessageQueue to use relationship endpoint with partner context
+    const _originalProcessMessageQueue = processMessageQueue;
+    processMessageQueue = async function() {
+        if (messageQueue.length === 0) return;
+
+        isProcessing = true;
+        updateSendButton();
+        const message = messageQueue.shift();
+
+        const chatContainer = document.getElementById("chatContainer");
+
+        disableUI();
+
+        // Create user message bubble
+        const userBubble = document.createElement("div");
+        userBubble.className = "chat-bubble user animated";
+        const currentTime = getCurrentTime();
+        userBubble.innerHTML = `
+            <div class="message-header">${USER_NAME}:</div>
+            <div class="message-content">${safeMarkdownParse(message)}</div>
+            <div class="message-time">${currentTime}</div>
+        `;
+
+        saveMessageToHistory({
+            type: 'user',
+            content: safeMarkdownParse(message),
+            timestamp: currentTime
+        });
+
+        chatContainer.appendChild(userBubble);
+        scrollToBottom(true);
+
+        // Show typing indicator
+        const typing = document.createElement("div");
+        typing.className = "typing-indicator";
+        typing.innerHTML = `
+            ${BOT_NAME}
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        `;
+        chatContainer.appendChild(typing);
+        scrollToBottom(true);
+
+        try {
+            currentController = new AbortController();
+            const res = await fetch(CHAT_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify({
+                    message: sanitizeInput(message),
+                    user_name: USER_NAME,
+                    pdn_code: PDN_CODE,
+                    partner_code: PARTNER_CODE,
+                    relationship_type: RELATIONSHIP_TYPE
+                }),
+                signal: currentController.signal
+            });
+
+            typing.remove();
+
+            if (!res.ok) {
+                if (res.status === 403) {
+                    const errorData = await res.json();
+                    showError(errorData.error || 'אין הרשאה');
+                } else {
+                    showError('שגיאה בשרת. אנא נסה שוב.');
+                }
+                enableUI();
+                isProcessing = false;
+                updateSendButton();
+                processMessageQueue();
+                return;
+            }
+
+            const data = await res.json();
+            const responseText = data.response || 'לא התקבלה תשובה';
+
+            // Create bot response bubble
+            const botBubble = document.createElement("div");
+            botBubble.className = "chat-bubble bot animated";
+            const responseTime = getCurrentTime();
+            botBubble.innerHTML = `
+                <div class="message-header">${BOT_NAME}:</div>
+                <div class="message-content">${safeMarkdownParse(responseText)}</div>
+                <div class="message-time">${responseTime}</div>
+                <div class="message-actions">
+                    <button class="bookmark-btn" onclick="toggleBookmark(this)" title="שמור הודעה">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+            `;
+
+            saveMessageToHistory({
+                type: 'bot',
+                header: BOT_NAME + ':',
+                content: safeMarkdownParse(responseText),
+                timestamp: responseTime
+            });
+
+            chatContainer.appendChild(botBubble);
+            scrollToBottom(true);
+
+        } catch (error) {
+            typing.remove();
+            if (error.name === 'AbortError') {
+                // User cancelled
+            } else {
+                showError('שגיאת תקשורת. אנא בדוק את החיבור ונסה שוב.');
+            }
+        }
+
+        enableUI();
+        isProcessing = false;
+        updateSendButton();
+        currentController = null;
+
+        // Process next message in queue
+        if (messageQueue.length > 0) {
+            processMessageQueue();
+        }
+    };
+
+    // Override handleThankYouClick for relationship module
+    function handleThankYouClick() {
+        const modal = document.getElementById('confirmationModal');
+        if (modal) modal.classList.add('show');
+    }
+
+    function hideConfirmationModal() {
+        const modal = document.getElementById('confirmationModal');
+        if (modal) modal.classList.remove('show');
+    }
+
+    async function confirmLogout() {
+        hideConfirmationModal();
+        try {
+            await fetch(LOGOUT_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } catch (error) {
+            // Continue to redirect even if logout request fails
+        }
+        clearConversationHistory();
+        window.location.href = LOGIN_PAGE;
+    }
+
+    // Initialize: add welcome message on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatContainer = document.getElementById('chatContainer');
+        const relLabel = RELATIONSHIP_LABELS[RELATIONSHIP_TYPE] || RELATIONSHIP_TYPE;
+
+        const welcomeBubble = document.createElement("div");
+        welcomeBubble.className = "chat-bubble bot animated";
+        const currentTime = getCurrentTime();
+        welcomeBubble.innerHTML = `
+            <div class="message-header">${BOT_NAME}:</div>
+            <div class="message-content">
+                <p>שלום ${USER_NAME} 👋</p>
+                <p>הצופן שלך: <strong>${PDN_CODE.toUpperCase()}</strong> | הצופן של הצד השני: <strong>${PARTNER_CODE.toUpperCase()}</strong></p>
+                <p>סוג הקשר: <strong>${relLabel}</strong></p>
+                <p>בואו נגלה יחד מה קורה בדינמיקה ביניכם, ואיך אפשר לנווט אותה בצורה טובה יותר.</p>
+                <p>ספר/י לי מה מעסיק אותך עכשיו.</p>
+            </div>
+            <div class="message-time">${currentTime}</div>
+        `;
+        chatContainer.appendChild(welcomeBubble);
+
+        // Restore dark mode preference
+        if (localStorage.getItem('relationships_dark_mode') === 'true') {
+            document.body.classList.add('dark-mode');
+            const fabThemeIcon = document.getElementById('fabThemeIcon');
+            const fabThemeText = document.getElementById('fabThemeText');
+            if (fabThemeIcon) fabThemeIcon.className = 'fas fa-sun';
+            if (fabThemeText) fabThemeText.textContent = 'מצב בהיר';
+        }
+    });
+</script>
+
+</body>
+</html>

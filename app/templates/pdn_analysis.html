@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDN - דוח תשובות ומטריצות</title>
+<style>
+* { box-sizing: border-box; }
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f0f2f5;
+    direction: rtl;
+}
+h1 { color: #2c3e50; text-align: center; margin-bottom: 5px; font-size: 22px; }
+h2 {
+    color: white;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    padding: 10px 15px;
+    background: #2c3e50;
+    border-radius: 6px;
+    font-size: 15px;
+}
+.summary { text-align: center; color: #555; margin-bottom: 15px; font-size: 13px; }
+.section { margin-bottom: 30px; }
+.filter-bar {
+    background: #ecf0f1;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.filter-bar label { font-size: 13px; font-weight: bold; color: #2c3e50; }
+.filter-bar select {
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 1px solid #bdc3c7;
+    font-size: 12px;
+    min-width: 200px;
+}
+.filter-bar .count { font-size: 11px; color: #7f8c8d; }
+.table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 70vh;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 10px;
+}
+table { border-collapse: collapse; font-size: 11px; white-space: nowrap; }
+th, td { border: 1px solid #ddd; padding: 4px 6px; text-align: center; }
+th { background: #34495e; color: white; position: sticky; top: 0; z-index: 10; }
+th.user-header { background: #2c3e50; position: sticky; right: 0; z-index: 20; text-align: right; min-width: 200px; }
+td.user-cell { background: #ecf0f1; position: sticky; right: 0; z-index: 5; text-align: right; font-weight: bold; font-size: 10px; }
+th.q-header { writing-mode: vertical-rl; text-orientation: mixed; max-width: 28px; height: 140px; font-size: 9px; padding: 4px 2px; }
+td.answer-ap { background: #d4efdf; color: #1e8449; }
+td.answer-et { background: #d6eaf8; color: #1a5276; }
+td.answer-tp { background: #fdebd0; color: #935116; }
+td.answer-ae { background: #fadbd8; color: #922b21; }
+td.answer-ranking { background: #f9f9f9; color: #333; font-size: 9px; }
+td.answer-pref { background: #e8daef; color: #4a235a; font-size: 9px; }
+td.empty { background: #f8f8f8; color: #ccc; }
+th.q-col { background: #2c3e50; position: sticky; right: 0; z-index: 20; text-align: right; min-width: 220px; max-width: 300px; white-space: normal; font-size: 11px; }
+td.q-cell { background: #f8f9fa; position: sticky; right: 0; z-index: 5; text-align: right; font-size: 10px; max-width: 300px; white-space: normal; }
+td.stat-cell { font-size: 10px; min-width: 80px; white-space: normal; line-height: 1.4; }
+.stat-bar { display: flex; height: 12px; border-radius: 3px; overflow: hidden; margin-top: 2px; }
+.bar-segment { height: 100%; min-width: 1px; }
+.bar-ap { background: #27ae60; } .bar-et { background: #2980b9; }
+.bar-tp { background: #e67e22; } .bar-ae { background: #c0392b; }
+.bar-d { background: #8e44ad; } .bar-s { background: #16a085; }
+.bar-f { background: #f39c12; } .bar-other { background: #95a5a6; }
+.dominant { font-weight: bold; font-size: 10px; }
+.stat-label { font-size: 9px; color: #666; }
+.no-data { color: #ccc; }
+.phase-row td { background: #7f8c8d; color: white; font-weight: bold; font-size: 11px; text-align: center; }
+.pdn-code { display: inline-block; padding: 1px 4px; border-radius: 3px; font-weight: bold; font-size: 10px; margin-right: 4px; }
+.pdn-E { background: #d6eaf8; color: #1a5276; }
+.pdn-A { background: #d4efdf; color: #1e8449; }
+.pdn-T { background: #fdebd0; color: #935116; }
+.pdn-P { background: #fadbd8; color: #922b21; }
+.pdn-NA { background: #eee; color: #999; }
+.code-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin: 1px; }
+.code-E { background: #d6eaf8; color: #1a5276; }
+.code-A { background: #d4efdf; color: #1e8449; }
+.code-T { background: #fdebd0; color: #935116; }
+.code-P { background: #fadbd8; color: #922b21; }
+.code-counts { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+nav { position: sticky; top: 0; background: #2c3e50; padding: 10px 20px; border-radius: 6px; margin-bottom: 20px; z-index: 100; text-align: center; }
+nav a { color: white; text-decoration: none; margin: 0 15px; font-size: 13px; padding: 5px 12px; border-radius: 4px; cursor: pointer; }
+nav a:hover { background: #4a6fa5; }
+nav a.disabled { opacity: 0.4; pointer-events: none; }
+.loading { text-align: center; padding: 40px; font-size: 16px; color: #7f8c8d; }
+tr.hidden { display: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+</style>
+</head>
+<body>
+
+<h1>PDN - דוח תשובות ומטריצות</h1>
+<div class="summary" id="summary">טוען נתונים...</div>
+
+<nav>
+    <a href="#matrix1" id="navMatrix1">מטריצת משתמשים</a>
+    <a href="#matrix2" id="navMatrix2">מטריצת קודים</a>
+    <a id="downloadBtn" class="disabled" style="background:#27ae60;">הורד כ-HTML</a>
+    <a id="excelBtn" class="disabled" style="background:#1d6f42;">הורד כ-Excel</a>
+    <a id="closeBtn">סגור דוח</a>
+</nav>
+
+<div id="content">
+    <div class="loading" id="loadingMsg">טוען נתונים מהשרת...</div>
+</div>
+
+<script>
+'use strict';
+
+const PDN_12 = Object.freeze(["E1","E5","E9","A3","A7","A11","T4","T8","T12","P2","P6","P10"]);
+const COLOR_MAP = Object.freeze({
+    AP:"bar-ap", ET:"bar-et", TP:"bar-tp", AE:"bar-ae", TE:"bar-et",
+    D:"bar-d", S:"bar-s", F:"bar-f",
+    A:"bar-ap", T:"bar-tp", E:"bar-et", P:"bar-ae"
+});
+const PHASE_LABELS = Object.freeze({
+    PartA: "חלק א - בחירה בינארית (AP/ET, TP/AE)",
+    PartB: "חלק ב - דירוג (D/S/F)",
+    PartC: "חלק ג - סולם (A/T, P/E)",
+    PartD: "חלק ד - ילדות/בגרות (TP/AE, AP/TE)",
+    PartE: "חלק ה - דירוג 4 (E/P/T/A)"
+});
+
+let DATA = null;
+let reportReady = false;
+
+// Performant HTML escape (regex-based, no DOM allocation per call)
+// NOTE: All user-facing text originates from admin-controlled JSON files (questions.json).
+// The esc() function provides defense-in-depth against accidental HTML injection.
+const _ESC_MAP = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, c => _ESC_MAP[c]);
+}
+
+function getSessionToken() {
+    // Try own localStorage first (key used by admin.js is 'adminSessionToken')
+    let token = localStorage.getItem('adminSessionToken') || '';
+    if (!token && window.parent !== window) {
+        try {
+            token = window.parent.localStorage.getItem('adminSessionToken') || '';
+        } catch (e) { /* cross-origin blocked */ }
+    }
+    return token;
+}
+
+// Scale map for PartC questions (38-42): 7 positions, left pole = higher value
+const SCALE_MAP = [
+    {leftValue: 12, rightValue:  0, description: (l, r) => `${l} (במידה רבה מאוד)`, dots: 1},
+    {leftValue: 10, rightValue:  2, description: (l, r) => `${l} (במידה רבה)`,       dots: 2},
+    {leftValue:  8, rightValue:  4, description: (l, r) => `${l} (במידה מסוימת)`,    dots: 3},
+    {leftValue:  6, rightValue:  6, description: (l, r) => `באמצע (ניטרלי)`,          dots: 4},
+    {leftValue:  4, rightValue:  8, description: (l, r) => `${r} (במידה מסוימת)`,    dots: 5},
+    {leftValue:  2, rightValue: 10, description: (l, r) => `${r} (במידה רבה)`,       dots: 6},
+    {leftValue:  0, rightValue: 12, description: (l, r) => `${r} (במידה רבה מאוד)`, dots: 7}
+];
+
+function _isScaleQuestion(qNum) {
+    const n = parseInt(qNum, 10);
+    return n >= 38 && n <= 56;
+}
+
+function formatScaleAnswer(ans, qNum) {
+    if (!ans || !ans.ranking) return '';
+    const questions = DATA ? DATA.questions : null;
+    if (!questions || !questions[qNum]) return '';
+    const opts = questions[qNum].options;
+
+    // Always use question options order: opts[0]=left pole, opts[1]=right pole
+    if (!opts || opts.length < 2) {
+        return Object.entries(ans.ranking).map(([k,v]) => k+':'+v).join(' ');
+    }
+    const leftCode  = opts[0].code;
+    const rightCode = opts[1].code;
+    const leftText  = opts[0].text;
+    const rightText = opts[1].text;
+    const leftVal   = ans.ranking[leftCode]  || 0;
+    const rightVal  = ans.ranking[rightCode] || 0;
+
+    const entry = SCALE_MAP.find(e => e.leftValue === leftVal && e.rightValue === rightVal);
+    if (!entry) return Object.entries(ans.ranking).map(([k, v]) => k + ':' + v).join(' ');
+
+    const filled = '●'.repeat(entry.dots);
+    const empty  = '○'.repeat(7 - entry.dots);
+    const label  = entry.description(leftText, rightText);
+    return entry.dots + '/7 [' + leftText + '] ' + filled + empty + ' [' + rightText + '] ' + label;
+}
+
+function formatAnswer(ans, qNum) {
+    if (!ans) return '';
+    if (ans.selected_option_code) return ans.selected_option_code;
+    if (ans.ranking && typeof ans.ranking === 'object') {
+        if (_isScaleQuestion(qNum)) return formatScaleAnswer(ans, qNum);
+        return Object.entries(ans.ranking)
+            .sort((a, b) => _isRankOrder(qNum) ? a[1] - b[1] : b[1] - a[1])
+            .map(([k, v]) => k + ':' + v)
+            .join(' ');
+    }
+    return '';
+}
+
+function _isRankOrder(qNum) {
+    // PartB (27-37) and PartE (57-61): rank=1 is top choice, higher=worse
+    const n = parseInt(qNum, 10);
+    return (n >= 27 && n <= 37) || (n >= 57 && n <= 61);
+}
+
+function getAnswerCode(ans, qNum) {
+    if (!ans) return null;
+    if (ans.selected_option_code) return ans.selected_option_code;
+    if (ans.ranking && typeof ans.ranking === 'object') {
+        const entries = Object.entries(ans.ranking);
+        if (!entries.length) return null;
+        if (_isRankOrder(qNum)) {
+            entries.sort((a, b) => a[1] - b[1]); // rank=1 is best -> pick lowest
+        } else {
+            entries.sort((a, b) => b[1] - a[1]); // scale: higher=stronger -> pick highest
+        }
+        return entries[0][0];
+    }
+    return null;
+}
+
+function getAnswerText(ans, qNum) {
+    if (!ans) return '';
+    // Get option text from the questions cache (not from answer payload)
+    const questions = DATA ? DATA.questions : null;
+    if (!questions || !questions[qNum]) return '';
+    const opts = questions[qNum].options;
+    if (!opts) return '';
+
+    if (ans.selected_option_code) {
+        const opt = opts.find(o => o.code === ans.selected_option_code);
+        return opt ? opt.text.trim() : '';
+    }
+    if (ans.ranking) {
+        const entries = Object.entries(ans.ranking);
+        if (_isRankOrder(qNum)) {
+            entries.sort((a, b) => a[1] - b[1]);
+        } else {
+            entries.sort((a, b) => b[1] - a[1]);
+        }
+        if (entries.length) {
+            const opt = opts.find(o => o.code === entries[0][0]);
+            return opt ? opt.text.trim() : '';
+        }
+    }
+    return '';
+}
+
+function cellClass(val) {
+    if (!val) return 'empty';
+    switch (val) {
+        case 'AP': case 'A': return 'answer-ap';
+        case 'ET': case 'E': case 'TE': return 'answer-et';
+        case 'TP': case 'T': return 'answer-tp';
+        case 'AE': case 'P': return 'answer-ae';
+        default: return val.includes(':') ? 'answer-ranking' : 'answer-pref';
+    }
+}
+
+function sortedQNums(questions) {
+    return Object.keys(questions).sort((a, b) => {
+        const na = parseInt(a, 10), nb = parseInt(b, 10);
+        if (!isNaN(na) && !isNaN(nb)) return na - nb;
+        return a.localeCompare(b);
+    });
+}
+
+function buildReport() {
+    const { users, answers, questions } = DATA;
+    if (!users || !answers || !questions) {
+        document.getElementById('content').innerHTML = '<div class="loading">נתונים חסרים</div>';
+        return;
+    }
+
+    const qNums = sortedQNums(questions);
+    const usersWithAnswers = users.filter(u => answers[u.email]);
+
+    document.getElementById('summary').textContent =
+        `משתמשים עם PDN תקין: ${users.length} | עם תשובות: ${usersWithAnswers.length} | שאלות: ${qNums.length}`;
+
+    // Pre-compute user groups by PDN code
+    const codeCounts = {};
+    const usersByCode = {};
+    PDN_12.forEach(c => { codeCounts[c] = 0; usersByCode[c] = []; });
+    usersWithAnswers.forEach(u => {
+        if (usersByCode[u.pdn_code]) {
+            codeCounts[u.pdn_code]++;
+            usersByCode[u.pdn_code].push(u);
+        }
+    });
+
+    // Use array.join for efficient string building
+    const parts = [];
+
+    // User filter options
+    const userOptsArr = ['<option value="all" selected>הכל</option>'];
+    usersWithAnswers.forEach(u => {
+        const name = esc((u.first_name + ' ' + u.last_name).trim());
+        userOptsArr.push(`<option value="${esc(u.uid)}">${esc(u.pdn_code)} | ${esc(u.uid)} | ${name}</option>`);
+    });
+
+    // PDN filter options
+    const pdnOptsArr = ['<option value="all" selected>הכל</option>'];
+    PDN_12.forEach(c => pdnOptsArr.push(`<option value="${c}">${c} (${codeCounts[c]})</option>`));
+
+    // --- SECTION 1: User Matrix ---
+    parts.push(`<div class="section" id="matrix1">
+    <h2>1. מטריצת תשובות משתמשים</h2>
+    <div class="filter-bar">
+        <label for="userFilter">סנן משתמש:</label>
+        <select id="userFilter">${userOptsArr.join('')}</select>
+        <span class="count" id="userCount" role="status" aria-live="polite">מציג ${usersWithAnswers.length} משתמשים</span>
+    </div>
+    <div class="table-container">
+    <table id="userTable" role="grid"><caption class="sr-only">מטריצת תשובות משתמשים</caption>
+    <thead><tr><th class="user-header" scope="col">משתמש (שם / UID / PDN)</th>`);
+
+    qNums.forEach(q => {
+        parts.push(`<th class="q-header" scope="col" title="Q${esc(q)}: ${esc(questions[q].text)} [${esc(questions[q].codes)}]">Q${esc(q)}</th>`);
+    });
+    parts.push('</tr></thead><tbody>');
+
+    usersWithAnswers.forEach(u => {
+        const ans = answers[u.email];
+        const pdn = u.pdn_code || 'NA';
+        const pdnCls = 'EATP'.includes(pdn[0]) ? 'pdn-' + pdn[0] : 'pdn-NA';
+        const name = esc((u.first_name + ' ' + u.last_name).trim());
+        parts.push(`<tr data-uid="${esc(u.uid)}" data-pdn="${esc(pdn)}">`);
+        parts.push(`<td class="user-cell"><span class="pdn-code ${pdnCls}">${esc(pdn)}</span> ${esc(u.uid)} <span style="color:#555;font-weight:normal">${name}</span></td>`);
+        for (let i = 0; i < qNums.length; i++) {
+            const val = formatAnswer(ans[qNums[i]], qNums[i]);
+            if (!val) { parts.push('<td class="empty">-</td>'); continue; }
+            parts.push(`<td class="${cellClass(val)}" title="${esc(val)}">${esc(val)}</td>`);
+        }
+        parts.push('</tr>');
+    });
+    parts.push('</tbody></table></div></div>');
+
+    // --- SECTION 2: PDN Code Stats ---
+    parts.push(`<div class="section" id="matrix2">
+    <h2>2. מטריצת סטטיסטיקה לפי קוד PDN</h2>
+    <div class="filter-bar">
+        <label for="pdnFilter">סנן קוד PDN:</label>
+        <select id="pdnFilter">${pdnOptsArr.join('')}</select>
+        <span class="count" id="pdnCount" role="status" aria-live="polite">מציג 12 קודים</span>
+    </div>
+    <div class="code-counts">`);
+    PDN_12.forEach(c => parts.push(`<span class="code-badge code-${c[0]}">${c}: ${codeCounts[c]}</span>`));
+    parts.push(`</div><div class="table-container">
+    <table id="pdnTable" role="grid"><caption class="sr-only">מטריצת סטטיסטיקה לפי קוד PDN</caption>
+    <thead><tr><th class="q-col" scope="col">שאלה</th>`);
+    PDN_12.forEach(c => parts.push(`<th class="pdn-col" scope="col" data-code="${c}">${c}</th>`));
+    parts.push('</tr></thead><tbody>');
+
+    let currentPhase = null;
+    for (let qi = 0; qi < qNums.length; qi++) {
+        const q = qNums[qi];
+        const qInfo = questions[q];
+
+        if (qInfo.phase !== currentPhase) {
+            currentPhase = qInfo.phase;
+            parts.push(`<tr class="phase-row"><td colspan="${PDN_12.length + 1}">${esc(PHASE_LABELS[currentPhase] || currentPhase)}</td></tr>`);
+        }
+
+        const shortText = qInfo.text.length > 50 ? qInfo.text.slice(0, 50) + '...' : qInfo.text;
+        parts.push(`<tr><td class="q-cell"><strong>Q${esc(q)}</strong> [${esc(qInfo.codes)}]<br>${esc(shortText)}</td>`);
+
+        for (let ci = 0; ci < PDN_12.length; ci++) {
+            const code = PDN_12[ci];
+            const codeUsers = usersByCode[code];
+            if (!codeUsers.length) {
+                parts.push(`<td class="stat-cell no-data pdn-col" data-code="${code}">-</td>`);
+                continue;
+            }
+
+            const counts = {};
+            let total = 0;
+            const ansTexts = {};
+            for (let ui = 0; ui < codeUsers.length; ui++) {
+                const userAns = answers[codeUsers[ui].email];
+                if (!userAns) continue;
+                const val = getAnswerCode(userAns[q], q);
+                if (val) {
+                    counts[val] = (counts[val] || 0) + 1;
+                    total++;
+                    if (!ansTexts[val]) {
+                        const t = getAnswerText(userAns[q], q);
+                        if (t) ansTexts[val] = t;
+                    }
+                }
+            }
+
+            if (total === 0) {
+                parts.push(`<td class="stat-cell no-data pdn-col" data-code="${code}">-</td>`);
+                continue;
+            }
+
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            const domAns = sorted[0][0];
+            let cellContent = '';
+            const showAll = _isRankOrder(q);
+            const limit = showAll ? sorted.length : Math.min(sorted.length, 2);
+            for (let si = 0; si < limit; si++) {
+                const [ans, cnt] = sorted[si];
+                const pct = Math.round(cnt / total * 100);
+                const isDom = ans === domAns;
+                const cls = isDom ? 'dominant' : 'stat-label';
+                const txt = (isDom && ansTexts[ans])
+                    ? `${esc(ans)}:${pct}% (${esc(ansTexts[ans].slice(0, 15))})`
+                    : `${esc(ans)}:${pct}%`;
+                cellContent += `<span class="${cls}">${txt}</span> `;
+            }
+
+            cellContent += '<div class="stat-bar">';
+            for (let si = 0; si < sorted.length; si++) {
+                const pct = sorted[si][1] / total * 100;
+                cellContent += `<div class="bar-segment ${COLOR_MAP[sorted[si][0]] || 'bar-other'}" style="width:${pct}%"></div>`;
+            }
+            cellContent += '</div>';
+
+            parts.push(`<td class="stat-cell pdn-col" data-code="${code}">${cellContent}</td>`);
+        }
+        parts.push('</tr>');
+    }
+    parts.push('</tbody></table></div></div>');
+
+    document.getElementById('content').innerHTML = parts.join('');
+
+    // Attach filter event listeners (no inline handlers)
+    const userFilter = document.getElementById('userFilter');
+    const pdnFilter = document.getElementById('pdnFilter');
+    if (userFilter) userFilter.addEventListener('change', filterUsers);
+    if (pdnFilter) pdnFilter.addEventListener('change', filterPdnCodes);
+
+    // Enable download button now that data is ready
+    reportReady = true;
+    document.getElementById('downloadBtn').classList.remove('disabled');
+    document.getElementById('excelBtn').classList.remove('disabled');
+}
+
+let _filterDebounce = null;
+function filterUsers() {
+    clearTimeout(_filterDebounce);
+    _filterDebounce = setTimeout(() => {
+        const filter = document.getElementById('userFilter').value;
+        const rows = document.querySelectorAll('#userTable tbody tr');
+        let visible = 0;
+        rows.forEach(row => {
+            const show = filter === 'all' || row.dataset.uid === filter;
+            row.classList.toggle('hidden', !show);
+            if (show) visible++;
+        });
+        document.getElementById('userCount').textContent = 'מציג ' + visible + ' משתמשים';
+    }, 50);
+}
+
+function filterPdnCodes() {
+    clearTimeout(_filterDebounce);
+    _filterDebounce = setTimeout(() => {
+        const filter = document.getElementById('pdnFilter').value;
+        document.querySelectorAll('#pdnTable .pdn-col').forEach(el => {
+            el.style.display = (filter === 'all' || el.dataset.code === filter) ? '' : 'none';
+        });
+        document.getElementById('pdnCount').textContent = 'מציג ' + (filter === 'all' ? '12' : '1') + ' קודים';
+    }, 50);
+}
+
+async function loadData() {
+    const token = getSessionToken();
+    if (!token) {
+        document.getElementById('content').innerHTML = '<div class="loading">לא מחובר - יש להתחבר דרך הדשבורד תחילה</div>';
+        return;
+    }
+
+    // Get email filter from URL params (legacy) or wait for postMessage from parent
+    const params = new URLSearchParams(window.location.search);
+    let emailsParam = params.get('emails') || '';
+
+    if (emailsParam) {
+        const count = emailsParam.split(',').filter(e => e.trim()).length;
+        document.getElementById('summary').textContent = 'טוען ' + count + ' משתמשים...';
+    }
+
+    try {
+        // Use POST with Authorization header to avoid token in URL/logs
+        const fetchOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                emails: emailsParam || undefined
+            })
+        };
+
+        const resp = await fetch('/pdn-admin/api/pdn-analysis/data', fetchOptions);
+
+        if (resp.status === 401) {
+            document.getElementById('content').innerHTML = '<div class="loading">הסשן פג תוקף - יש להתחבר מחדש</div>';
+            return;
+        }
+        if (!resp.ok) {
+            document.getElementById('content').innerHTML = '<div class="loading">שגיאה בשרת (' + resp.status + ')</div>';
+            return;
+        }
+
+        DATA = await resp.json();
+        if (DATA.error) {
+            document.getElementById('content').innerHTML = '<div class="loading">שגיאה: ' + esc(DATA.error) + '</div>';
+            return;
+        }
+
+        // Defer DOM render to next animation frame for smoother UX
+        requestAnimationFrame(buildReport);
+    } catch (e) {
+        document.getElementById('content').innerHTML = '<div class="loading">שגיאה בטעינה: ' + esc(e.message) + '</div>';
+    }
+}
+
+function downloadReport() {
+    if (!reportReady) return;
+
+    try {
+        // Build a self-contained HTML with the already-rendered content
+        const styles = document.querySelector('style').outerHTML;
+        const title = document.querySelector('h1').outerHTML;
+        const summary = document.getElementById('summary').outerHTML;
+        const content = document.getElementById('content').innerHTML;
+
+        let html = '<!DOCTYPE html>\n<html dir="rtl" lang="he"><head><meta charset="UTF-8">';
+        html += '<title>PDN - דוח תשובות ומטריצות</title>' + styles + '</head><body>';
+        html += title + summary + '<div id="content">' + content + '</div>';
+
+        // Add filter scripts so filters still work in the downloaded file
+        html += '<script>\n';
+        html += 'document.getElementById("userFilter").addEventListener("change",function(){';
+        html += 'var f=this.value;var rows=document.querySelectorAll("#userTable tbody tr");var v=0;';
+        html += 'rows.forEach(function(r){var s=f==="all"||r.dataset.uid===f;r.classList.toggle("hidden",!s);if(s)v++;});';
+        html += 'document.getElementById("userCount").textContent="מציג "+v+" משתמשים";});\n';
+        html += 'document.getElementById("pdnFilter").addEventListener("change",function(){';
+        html += 'var f=this.value;document.querySelectorAll("#pdnTable .pdn-col").forEach(function(el){';
+        html += 'el.style.display=(f==="all"||el.dataset.code===f)?"":"none";});';
+        html += 'document.getElementById("pdnCount").textContent="מציג "+(f==="all"?"12":"1")+" קודים";});\n';
+        html += '<\/script></body></html>';
+
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        a.download = 'PDN_analysis_' + dateStr + '.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        // Graceful fallback - log but don't crash
+        console.error('Download failed:', err);
+    }
+}
+
+function closeReport() {
+    if (window.parent !== window) {
+        try { window.parent.closePdnAnalysis(); return; } catch(err) {}
+    }
+    window.location.href = '/pdn-admin/dashboard';
+}
+
+// Event listeners (no inline handlers)
+document.getElementById('downloadBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    downloadReport();
+});
+document.getElementById('excelBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    if (!reportReady) return;
+    const token = localStorage.getItem('adminSessionToken') || '';
+    const emails = DATA && DATA.users ? DATA.users.map(u => u.email).join(',') : '';
+    // Use a hidden form POST to avoid URL size limits with large email lists
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/pdn-admin/api/pdn-analysis/excel';
+    form.style.display = 'none';
+    const addField = (name, value) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+    };
+    addField('session_token', token);
+    addField('emails', emails);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+});
+document.getElementById('closeBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    closeReport();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeReport();
+    }
+});
+
+// Listen for emails from parent via postMessage (avoids URL length limits)
+let _dataLoaded = false;
+window.addEventListener('message', function(event) {
+    if (event.origin !== window.location.origin) return;
+    if (event.data && event.data.type === 'pdnEmails' && !_dataLoaded) {
+        _dataLoaded = true;
+        // Override the URL param with postMessage data
+        const params = new URLSearchParams(window.location.search);
+        params.set('emails', event.data.emails);
+        history.replaceState(null, '', '?' + params.toString());
+        loadData();
+    }
+});
+
+// Start loading - if emails already in URL (legacy/direct access), load immediately
+// Otherwise wait for postMessage from parent
+(function() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('emails')) {
+        _dataLoaded = true;
+        loadData();
+    } else if (window.parent === window) {
+        // Direct access without parent - load all data
+        _dataLoaded = true;
+        loadData();
+    }
+    // else: wait for postMessage from parent iframe
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: pdn-chat
+    env: python
+    plan: standard  # Upgrade to standard plan for more memory
+    buildCommand: pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+    startCommand: gunicorn run:app_instance --config gunicorn.conf.py --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SMTP_SERVER
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USERNAME
+        value: ${SMTP_USERNAME}
+      - key: SMTP_PASSWORD
+        value: ${SMTP_PASSWORD}
+      - key: SAVED_RESULTS_DIR
+        value: /pdn/saved_results
+      - key: FLASK_ENV
+        value: production
+      - key: OPENAI_API_KEY
+        value: ${OPENAI_API_KEY}
+    healthCheckPath: /
+    autoDeploy: true
+    disk:
+      name: pdn
+      mountPath: /app/saved_results
+      sizeGB: 1
