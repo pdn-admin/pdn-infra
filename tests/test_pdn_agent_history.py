@@ -289,8 +289,8 @@ class TestPromptCaching:
 class TestSummaryLLMProviderSelection:
     """Tests that the summary LLM always uses gpt-4o-mini regardless of main provider."""
 
-    def test_anthropic_provider_uses_haiku_for_summary(self):
-        """When main provider is Anthropic, summary_llm should be claude-3-5-haiku-latest."""
+    def test_anthropic_provider_uses_sonnet5_for_summary(self):
+        """When main provider is Anthropic, summary_llm should be claude-sonnet-5."""
         with patch("app.pdn_relationships.agents.base_pdn_agent.ChatOpenAI") as mock_openai, \
              patch("app.pdn_relationships.agents.base_pdn_agent.ChatAnthropic") as mock_anthropic, \
              patch("app.pdn_relationships.agents.base_pdn_agent.Config") as mock_config:
@@ -306,12 +306,12 @@ class TestSummaryLLMProviderSelection:
             mock_openai.return_value = MagicMock()
             agent = PDNAgent()
 
-            # ChatAnthropic should be called twice: once for main LLM, once for summary (haiku)
-            haiku_calls = [
+            # ChatAnthropic should be called twice: once for main LLM, once for summary (claude-sonnet-5)
+            sonnet5_calls = [
                 call for call in mock_anthropic.call_args_list
-                if call.kwargs.get("model") == "claude-3-5-haiku-20241022"
+                if call.kwargs.get("model") == "claude-sonnet-5"
             ]
-            assert len(haiku_calls) == 1, "Expected ChatAnthropic to be called with claude-3-5-haiku-20241022 for summary LLM"
+            assert len(sonnet5_calls) == 1, "Expected ChatAnthropic to be called with claude-sonnet-5 for summary LLM"
 
     def test_openai_provider_uses_gpt4o_mini_for_summary(self):
         """When main provider is OpenAI, summary_llm should be gpt-4o-mini."""

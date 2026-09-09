@@ -980,7 +980,7 @@ async function processMessageQueue() {
         scrollToBottom(true); // Force scroll for bot message
 
         // Add quick reply buttons for bot messages (not first welcome)
-        addQuickReplies(botBubble, true);
+        addQuickReplies(botBubble, false);
         scrollToBottom(true); // Force scroll after quick replies
 
     } catch (error) {
@@ -1005,12 +1005,19 @@ async function processMessageQueue() {
 }
 
 // Add quick reply buttons
-function addQuickReplies(botBubble, skipCodeInfo = false) {
+// isFirstMessage: true = show all 3 buttons (opening message only), false = no buttons
+function addQuickReplies(botBubble, isFirstMessage = false) {
+    // Only show quick reply buttons on the first welcome message
+    if (!isFirstMessage) {
+        return;
+    }
+    
+    // First welcome message - show all 3 buttons
     const quickReplies = [
-       /* "אתגר 21 יום",
-        "אימון יומי",*/
-        "ספר לי על הקוד שלי"
-    ].filter(r => !(skipCodeInfo && r === "ספר לי על הקוד שלי"));
+        "ספר לי על קוד המקור שלי",
+        "אתגר 21 יום",
+        "אימון יומי"
+    ];
 
     const quickRepliesDiv = document.createElement("div");
     quickRepliesDiv.className = "quick-replies";
@@ -1041,6 +1048,14 @@ function addQuickReplies(botBubble, skipCodeInfo = false) {
     });
 
     botBubble.appendChild(quickRepliesDiv);
+}
+
+// Ask about source code - triggers a chat message
+function askAboutSourceCode() {
+    if (!isProcessing) {
+        document.getElementById("userInput").value = "ספר לי על קוד המקור שלי";
+        sendMessage();
+    }
 }
 
 // Handle "תודה על השיחה" click - redirect to login page
@@ -1205,7 +1220,7 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
 
         chatContainer.appendChild(initialBot);
-        addQuickReplies(initialBot, false); // first message - show "ספר לי"
+        addQuickReplies(initialBot, true); // first message - show all 3 buttons
         scrollToBottom(true);
         } // end binat-only welcome message
 
@@ -1747,6 +1762,70 @@ async function submitDailyTrainingRequest(event) {
 
     const submitBtn = document.getElementById('submitDailyTrainingBtn');
     const originalText = submitBtn.innerHTML;
+
+    // Initialize PDN_DATA if not already defined (shared with 21-day plan)
+    if (!window.PDN_DATA) window.PDN_DATA = {
+        'e1':  { name: 'אומץ והעזה',    element: 'Empower - אדנות ומנהיגות',  eng1: 'E1',  eng2: 'A7',  eng3: 'P2',
+                 fear: 'פחד משעבוד ואיבוד שליטה',
+                 best: 'מנהיגות טבעית, יוזמה ותעוזה, חיבור לאינטואיציה',
+                 warn: 'חוסר סבלנות, תגובות חדות לביקורת, התבצרות בעמדות',
+                 strengths: ['אומץ ותעוזה לפרוץ גבולות', 'יכולת להנהיג באותנטיות', 'אינטואיציה חדה בהחלטות', 'מיקוד ובהירות במטרה', 'כריזמה סוחפת ומעניקה השראה', 'ראיית חזון ויכולת מימוש'] },
+        'e5':  { name: 'קבלה והנהגה',   element: 'Empower - אדנות ומנהיגות',  eng1: 'E5',  eng2: 'A11', eng3: 'P6',
+                 fear: 'איבוד שליטה ואובדן חירות פנימית',
+                 best: 'סמכות שקטה עם חמלה, תכנון לטווח ארוך, השראת צמיחה',
+                 warn: 'אחריות עודפת, צורך בשליטה, עקשנות',
+                 strengths: ['סמכות שקטה עם הכלה', 'ראייה רחבה וסדרי עדיפויות', 'מנהיגות אסטרטגית', 'עוגן שמחבר אנשים', 'ביטחון באינטואיציה', 'מיקוד בהשגת יעד', 'חיבור לשמחת חיים'] },
+        'e9':  { name: 'חוכמה והתנסות', element: 'Empower - אדנות ומנהיגות',  eng1: 'E9',  eng2: 'A3',  eng3: 'P10',
+                 fear: 'פחד משעבוד ואיבוד החופש',
+                 best: 'שיתוף חוכמה מניסיון, מנטורינג מתוך חמלה, חופש פנימי',
+                 warn: 'ירידה בערך עצמי, עייפות מחוסר הכרה, שינויי כיוון תכופים',
+                 strengths: ['הנהגה מתוך תכלית', 'מנטורינג מניסיון אישי', 'יכולת הכוונה מחוכמת הניסיון', 'אופטימיות ואמונה ביכולות', 'יכולת ללמד בסבלנות', 'חיבור לחופש פנימי', 'שמירה על מוניטין והשראת אמון'] },
+        'a3':  { name: 'תקשורת ותקווה', element: 'Achievement - הישגיות והצלחה', eng1: 'A3',  eng2: 'E9',  eng3: 'T4',
+                 fear: 'פחד מכישלון',
+                 best: 'זיהוי הזדמנויות, תקשורת מעוררת השראה, קשרים כמפתח',
+                 warn: 'פיזור, צורך באישור, קושי בהתמדה',
+                 strengths: ['כושר ביטוי גבוה', 'שנינות וסקרנות', 'חוכמת ניסיון ומנטורינג', 'יכולת שיווקית', 'זיהוי הזדמנויות דרך קשרים', 'איזון עבודה-משפחה', 'השראה טבעית ופתרונות מעשיים'] },
+        'a7':  { name: 'תבונה והצלחה',  element: 'Achievement - הישגיות והצלחה', eng1: 'A7',  eng2: 'E1',  eng3: 'T8',
+                 fear: 'פחד מכישלון',
+                 best: 'הסקת מסקנות מהירה, פיתוח חדשנות, ראיית התמונה הרחבה',
+                 warn: 'עיכוב בהחלטות, פרפקציוניזם, רגישות לביקורת',
+                 strengths: ['חשיבה תבונית רחבה', 'חיבור ידע, רעיונות וחדשנות', 'תרגום רעיונות ליישום מעשי', 'זיהוי מהיר של הזדמנויות', 'יכולת ייעוץ וראיית הצלחה עתידית', 'אופטימיות ואמונה בהצלחה', 'יכולת ביטוי גבוהה וניתוח מהיר'] },
+        'a11': { name: 'הארה וחדשנות',  element: 'Achievement - הישגיות והצלחה', eng1: 'A11', eng2: 'E5',  eng3: 'T12',
+                 fear: 'פחד מכישלון',
+                 best: 'תרגום תובנות לפתרונות מעשיים, חזון רחב, השראה',
+                 warn: 'היצמדות לרעיונות לא מציאותיים, דחיינות, חשדנות',
+                 strengths: ['ראיית חזון רחב ורצון לשפר מציאות', 'חשיבה חדשנית ומקורית', 'רצון אמיתי להיטיב עם העולם', 'אמון בחזון ללא סייג', 'השראה טבעית ופתרונות מעשיים'] },
+        't4':  { name: 'ביטחון והגנה',  element: 'Trust - ביטחון והרמוניה',    eng1: 'T4',  eng2: 'P10', eng3: 'A3',
+                 fear: 'פחד מסכנות ואי ודאות',
+                 best: 'פעולה מתוך שקט, חשיבה לוגית, עוגן יציבות לסביבה',
+                 warn: 'דאגנות יתר, חשדנות, הסתגרות',
+                 strengths: ['יציבות, אחריות ונאמנות גבוהה', 'רגישות לפרטים ולתחושות אחרים', 'ראיית סיכונים והיערכות מראש', 'יכולת להעניק שקט בעת משבר', 'יצירת מרחב מוגן', 'הגנה על הבית, המשפחה והערכים'] },
+        't8':  { name: 'צדק ושמירה',    element: 'Trust - ביטחון והרמוניה',    eng1: 'T8',  eng2: 'P2',  eng3: 'A7',
+                 fear: 'פחד מסכנות ואי ודאות',
+                 best: 'הובלה מתוך ערכים ויושרה, פעולה עקבית ומאוזנת',
+                 warn: 'שחור-לבן, שיפוטיות, קושי לסלוח',
+                 strengths: ['עמוד שדרה מוסרי וחוק פנימי יציב', 'הבחנה חדה בין נכון ללא נכון', 'הגנה על זכויות ופרטיות', 'ראייה יסודית וחקירה לעומק', 'נאמנות ועמידה בהתחייבויות', 'שליטה עצמית ונחישות', 'שאיפה לצדק חברתי'] },
+        't12': { name: 'אחדות והרמוניה',element: 'Trust - ביטחון והרמוניה',    eng1: 'T12', eng2: 'P6',  eng3: 'A11',
+                 fear: 'פחד מאובדן ואי ודאות',
+                 best: 'הקשבה אותנטית, גישור, שלווה פנימית בחוסר ודאות',
+                 warn: 'ויתור על רצונות, ריצוי יתר, קושי בהצבת גבולות',
+                 strengths: ['הקשבה עמוקה ואמיתית', 'אמפתיה חמלה וסובלנות', 'אצילות ושלווה במצבי לחץ', 'הבחנה בסכנות מבלי לייצר פחד', 'הרמוניה בבית ובעבודה', 'מענה מאוזן למצבים רגישים', 'גשר ואחדות בין דעות ותרבויות'] },
+        'p2':  { name: 'אפשור ועשייה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P2',  eng2: 'T8',  eng3: 'E1',
+                 fear: 'פחד מדחייה ואובדן הנאה',
+                 best: 'יציבות ובהירות, אמפתיה ונתינה, שביעות רצון ביומיום',
+                 warn: 'ביקורת עצמית, היאחזות בשגרה, הימנעות מהזדמנויות',
+                 strengths: ['אמינות גבוהה, יציבות ותמיכה', 'יכולת ביצוע מדויקת', 'הקשבה, סבלנות ואמפתיה', 'איזון בין עשייה להנאה', 'השראה באמצעות עקביות ונאמנות'] },
+        'p6':  { name: 'צמיחה והדרכה',  element: 'Pleasure - הנאה ושפע',       eng1: 'P6',  eng2: 'T12', eng3: 'E5',
+                 fear: 'איבוד אהבה ושייכות',
+                 best: 'הדרכה סבלנית, גבולות עדינים עם הרמוניה, ניהול לצמיחה',
+                 warn: 'נתינת יתר עד תשישות, ביקורתיות עצמית, קושי לבקש עזרה',
+                 strengths: ['ארגון, אבחנה ויעילות', 'הדרכה סבלנית מכילה ומכוונת צמיחה', 'איזון בין עבודה, הנאה ושמחת חיים', 'אחריות אמינות ומחויבות מאוזנת', 'ראיית האסתטיקה והיופי שבחיים'] },
+        'p10': { name: 'שפע ונתינה',    element: 'Pleasure - הנאה ושפע',       eng1: 'P10', eng2: 'T4',  eng3: 'E9',
+                 fear: 'פחד מדחייה ונטישה',
+                 best: 'ביצוע גבוה, נתינה מתוך שמחה, שיתופי פעולה הרמוניים',
+                 warn: 'נתינת יתר עד מחסור, ביקורתיות עצמית, קושי לבקש עזרה',
+                 strengths: ['יכולת ביצוע גבוהה והתמדה', 'נתינה מתוך שמחה', 'בניית תשתיות ותוצרים איכותיים', 'עבודת צוות והרמוניה', 'חוש אחריות ומנהיגות יציבה', 'שמחת חיים ויכולת לחגוג הצלחות'] },
+    };
 
     try {
         // Disable button and show PDN loading animation

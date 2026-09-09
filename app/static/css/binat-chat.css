@@ -244,8 +244,9 @@ body {
 
 .input-buttons {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
 
@@ -332,6 +333,26 @@ body {
 
 .action-button.challenge-btn:hover {
     box-shadow: 0 6px 16px rgba(26, 37, 64, 0.35);
+}
+
+.action-button.source-code-btn {
+    background: linear-gradient(135deg, #5c4a2a 0%, #8b6914 100%);
+    color: #f0d080;
+    box-shadow: 0 4px 12px rgba(92, 74, 42, 0.25);
+}
+
+.action-button.source-code-btn:hover {
+    box-shadow: 0 6px 16px rgba(92, 74, 42, 0.35);
+}
+
+.action-button.daily-training-btn {
+    background: linear-gradient(135deg, #8b6914 0%, #c9a96e 100%);
+    color: #2d2a26;
+    box-shadow: 0 4px 12px rgba(139, 105, 20, 0.25);
+}
+
+.action-button.daily-training-btn:hover {
+    box-shadow: 0 6px 16px rgba(139, 105, 20, 0.35);
 }
 
 /* ===== Typing Indicator - Modern Wave Animation ===== */
@@ -825,6 +846,20 @@ body.dark-mode .fab-item i {
     .input-area textarea {
         font-size: 15px;
         padding: 10px 12px;
+    }
+
+    .input-buttons {
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .action-button {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    .action-button span {
+        display: none;
     }
 
     .send-button {
@@ -1972,15 +2007,32 @@ body.dark-mode .quick-reply-btn:hover {
 }
 
 /* ===== Strengths ticker in loading screen ===== */
-.pdn-strengths-ticker {
-    min-height: 28px;
-    font-size: 15px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
-    margin-top: 12px;
+.pdn-strengths-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 20px;
+    margin-bottom: 6px;
     text-align: center;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.pdn-strengths-ticker {
+    min-height: 36px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #f5d742;
+    margin-top: 4px;
+    text-align: center;
+    letter-spacing: 0.5px;
     animation: strengthFade 0.5s ease;
+    text-shadow: 0 2px 8px rgba(245, 215, 66, 0.3);
+    padding: 8px 16px;
+    background: rgba(245, 215, 66, 0.08);
+    border-radius: 8px;
+    border: 1px solid rgba(245, 215, 66, 0.15);
+    display: inline-block;
 }
 
 @keyframes strengthFade {

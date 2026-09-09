@@ -81,7 +81,17 @@
 
             <button class="action-button challenge-btn" onclick="show21PlanModal()" title="אתגר 21 יום" id="challengeBtn"
                     aria-label="אתגר 21 יום">
-                <i class="fas fa-calendar-check"></i> <span>21 יום</span>
+                <i class="fas fa-calendar-check"></i> <span>אתגר 21</span>
+            </button>
+
+            <button class="action-button daily-training-btn" onclick="showDailyTrainingModal()" title="אימון יומי" id="dailyTrainingBtn"
+                    aria-label="אימון יומי">
+                <i class="fas fa-dumbbell"></i> <span>אימון יומי</span>
+            </button>
+
+            <button class="action-button source-code-btn" onclick="askAboutSourceCode()" title="קוד המקור שלי" id="sourceCodeBtn"
+                    aria-label="קוד המקור שלי">
+                <i class="fas fa-dna"></i> <span>קוד המקור שלי</span>
             </button>
         </div>
     </div>
@@ -150,6 +160,7 @@
                 <div class="pdn-loading-bar"></div>
             </div>
             <div class="pdn-loading-msg" id="loadingMsg">בונה תוכנית מותאמת אישית...</div>
+            <div class="pdn-strengths-label">החוזק שלך</div>
             <div class="pdn-strengths-ticker" id="loadingStrength"></div>
         </div>
     </div>
@@ -251,6 +262,7 @@
                 <div class="pdn-loading-bar"></div>
             </div>
             <div class="pdn-loading-msg" id="dailyLoadingMsg">מכין אימון יומי מותאם...</div>
+            <div class="pdn-strengths-label">החוזק שלך</div>
             <div class="pdn-strengths-ticker" id="dailyLoadingStrength"></div>
         </div>
     </div>
